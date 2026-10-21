@@ -1,26 +1,24 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import AppSidebar from '@/app/layout/AppSidebar.vue'
+import AppNavbar from '@/app/layout/AppNavbar.vue'
 import AppTitlebar from '@/app/layout/AppTitlebar.vue'
 import AvatarLayer from '@/modules/avatar/components/AvatarLayer.vue'
+import SettingsDrawer from '@/modules/settings/SettingsDrawer.vue'
 import { useAppearance } from '@/composables/useAppearance'
 import { useOverlayStore } from '@/modules/overlay/stores/overlay.store'
-import { useSettingsStore } from '@/stores/settings.store'
 import { useUpdaterStore } from '@/stores/updater.store'
 
 useAppearance()
 void useOverlayStore().init()
 void useUpdaterStore().init()
-const { settings } = storeToRefs(useSettingsStore())
 </script>
 
 <template>
   <v-app id="app-container">
     <AppTitlebar />
-    <AppSidebar />
+    <AppNavbar />
 
     <v-main class="bg-main main-container">
-      <div class="content" :class="{ 'sidebar-pinned': settings.sidebarPinned }">
+      <div class="content">
         <!-- Only the page coming in fades; the one leaving is swapped out at once, not kept
              around and painted/composited at the same time as the new one - that overlap is what
              made switching tabs feel like it hitched on heavier pages (Projeção, Configurações).
@@ -39,12 +37,14 @@ const { settings } = storeToRefs(useSettingsStore())
     </v-main>
 
     <AvatarLayer />
+    <SettingsDrawer />
   </v-app>
 </template>
 
 <style scoped>
 .main-container {
-  height: calc(100vh - var(--titlebar-height));
+  height: calc(100vh - var(--titlebar-height) - var(--navbar-height));
+  margin-top: var(--navbar-height);
   padding: 0 !important;
   overflow: hidden;
 }
@@ -52,10 +52,8 @@ const { settings } = storeToRefs(useSettingsStore())
 .content {
   position: relative;
   height: 100%;
-  margin-left: var(--sidebar-collapsed-width);
   padding: 24px;
   overflow-y: auto;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Only the incoming page animates - the outgoing one has no leave transition, so it is removed
@@ -76,9 +74,5 @@ const { settings } = storeToRefs(useSettingsStore())
   position: absolute;
   inset: 0;
   pointer-events: none;
-}
-
-.content.sidebar-pinned {
-  margin-left: var(--sidebar-width);
 }
 </style>

@@ -11,6 +11,8 @@ interface IpcContext {
   logs: LogService
   /** Told about every change, so main-process-only reactions (the tray) can follow along too. */
   onSettingsChanged?: (updated: AppSettings) => void
+  /** Told right before the window is hidden to the tray instead of minimized for real. */
+  onHideToTray?: () => void
 }
 
 const setSettingSchema = z
@@ -28,7 +30,7 @@ const setSettingSchema = z
     return { key: input.key, value: value.data }
   })
 
-export function registerIpc({ settings, logs, onSettingsChanged }: IpcContext): void {
+export function registerIpc({ settings, logs, onSettingsChanged, onHideToTray }: IpcContext): void {
   handle(IpcChannels.appGetInfo, z.undefined(), (): AppInfo => ({
     name: app.getName(),
     version: app.getVersion(),
@@ -57,7 +59,14 @@ export function registerIpc({ settings, logs, onSettingsChanged }: IpcContext): 
     if (!win) return false
     switch (action) {
       case 'minimize':
-        win.minimize()
+        // With "Executar em segundo plano" on, minimizing hides the window to the tray instead
+        // of dropping it to the taskbar - the close button (below) always quits for real.
+        if (settings.getAll().runInBackground) {
+          onHideToTray?.()
+          win.hide()
+        } else {
+          win.minimize()
+        }
         break
       case 'maximize':
         if (win.isMaximized()) win.unmaximize()

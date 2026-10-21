@@ -8,6 +8,15 @@ const logoMaskStyle = {
   maskImage: `url(${logoUrl})`,
   WebkitMaskImage: `url(${logoUrl})`
 }
+
+/* The loading screen's own logo (index.html) starts its identical 5s sweep with no delay, right
+   when the page loads - `performance.now()` here is ms since that same moment. A *negative*
+   delay jumps this animation straight to the phase the loading screen's one is already at, so
+   the two logos' shine passes at the same instant instead of drifting apart by however long Vue
+   took to boot and mount this page. */
+const logoShineStyle = {
+  animationDelay: `-${(performance.now() % 5000) / 1000}s`
+}
 </script>
 
 <template>
@@ -20,7 +29,7 @@ const logoMaskStyle = {
     <div class="home-logo-wrap">
       <img :src="logoUrl" alt="" class="home-logo" />
       <div class="home-logo-shine-mask" :style="logoMaskStyle" aria-hidden="true">
-        <div class="home-logo-shine" />
+        <div class="home-logo-shine" :style="logoShineStyle" />
       </div>
     </div>
     <div class="home-text">
@@ -55,7 +64,9 @@ const logoMaskStyle = {
 .home-logo {
   position: relative;
   height: 140px;
-  filter: drop-shadow(0 10px 30px rgba(99, 102, 241, 0.35));
+  /* Off in dark mode (main.scss: --home-logo-glow) - the same blur that reads as a subtle shadow
+     on the light background shows up as a glowing box behind the logo on the dark one. */
+  filter: var(--home-logo-glow);
   animation: home-logo-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 

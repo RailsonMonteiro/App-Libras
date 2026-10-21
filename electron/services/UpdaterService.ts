@@ -1,9 +1,31 @@
 import { app, BrowserWindow } from 'electron'
-import { autoUpdater } from 'electron-updater'
+import { autoUpdater, type UpdateInfo } from 'electron-updater'
 import { IpcChannels, type UpdaterState } from '../../src/types/ipc'
 import type { LogService } from './LogService'
 
-const IDLE: UpdaterState = { status: 'idle', version: null, progressPercent: null, error: null }
+const IDLE: UpdaterState = {
+  status: 'idle',
+  version: null,
+  progressPercent: null,
+  releaseNotes: null,
+  error: null
+}
+
+/** `info.releaseNotes` is a string for a single release, or one entry per version skipped over
+ *  getting here - either way, what changed in exactly the version we are about to install. */
+function releaseNotesOf(info: UpdateInfo): string | null {
+  const notes = info.releaseNotes
+  if (typeof notes === 'string') return notes
+  if (Array.isArray(notes)) {
+    return (
+      notes
+        .map((entry) => entry.note)
+        .filter((note): note is string => Boolean(note))
+        .join('\n\n') || null
+    )
+  }
+  return null
+}
 
 /**
  * Wraps `electron-updater`'s `autoUpdater` (fed by the "latest*.yml" electron-builder publishes
@@ -19,18 +41,30 @@ export class UpdaterService {
     // We ask for a restart ourselves (install()); never behind someone's back on quit.
     autoUpdater.autoInstallOnAppQuit = false
 
-    autoUpdater.on('checking-for-update', () => this.set({ status: 'checking', error: null }))
+    autoUpdater.on('checking-for-update', () =>
+      this.set({ status: 'checking', releaseNotes: null, error: null })
+    )
     autoUpdater.on('update-available', (info) =>
-      this.set({ status: 'downloading', version: info.version, progressPercent: 0 })
+      this.set({
+        status: 'downloading',
+        version: info.version,
+        progressPercent: 0,
+        releaseNotes: releaseNotesOf(info)
+      })
     )
     autoUpdater.on('update-not-available', () =>
-      this.set({ status: 'upToDate', version: null, progressPercent: null })
+      this.set({ status: 'upToDate', version: null, progressPercent: null, releaseNotes: null })
     )
     autoUpdater.on('download-progress', (progress) =>
       this.set({ progressPercent: Math.round(progress.percent) })
     )
     autoUpdater.on('update-downloaded', (info) =>
-      this.set({ status: 'downloaded', version: info.version, progressPercent: 100 })
+      this.set({
+        status: 'downloaded',
+        version: info.version,
+        progressPercent: 100,
+        releaseNotes: releaseNotesOf(info)
+      })
     )
     autoUpdater.on('error', (error) => {
       this.logs.error('updater', 'Check or download failed', { error: error.message })

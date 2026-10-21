@@ -1,5 +1,9 @@
 import { app, Menu, Notification, Tray, type BrowserWindow } from 'electron'
-import icon from '../../../build/icon.ico?asset'
+// A PNG copy of icon.webp, not the .webp itself - Electron's nativeImage (unlike Chromium's own
+// <img>/<canvas>, which decodes the source .webp just fine) returns an empty image for it, so a
+// Tray built from it shows no icon at all. Converted once (canvas.toDataURL in a devtools
+// console), kept as a plain file so this isn't redone on every build.
+import icon from '../../../src/assets/images/icon.png?asset'
 import type { AppLocale } from '../../../src/types/settings'
 
 const STRINGS: Record<
@@ -30,8 +34,10 @@ const STRINGS: Record<
 }
 
 /**
- * Keeps the app reachable after the window is closed: closing it (see main/index.ts) only hides
- * it, and this tray icon is the way back - or, through its menu, the actual way to quit.
+ * Keeps the app reachable after the window is minimized: with "Executar em segundo plano" on,
+ * minimizing (see ipc/index.ts) hides the window instead of dropping it to the taskbar, and this
+ * tray icon is the way back - or, through its menu, the actual way to quit. Closing the window
+ * (the titlebar's own "X") always quits, regardless of that setting.
  */
 export function createTray(getWindow: () => BrowserWindow, locale: AppLocale): Tray {
   const strings = STRINGS[locale]

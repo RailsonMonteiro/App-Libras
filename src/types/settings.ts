@@ -36,7 +36,7 @@ export interface AppSettings {
   sidebarPinned: boolean
   /** Reconnects to the last LouvorJA endpoint when the app starts. */
   autoConnect: boolean
-  /** Closing the window hides it to the system tray instead of quitting the app. */
+  /** Minimizing the window hides it to the system tray instead of dropping it to the taskbar. */
   runInBackground: boolean
   /**
    * Lets the app send slide text to a VLibras translation server. Off by default: the text
@@ -76,7 +76,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   locale: 'pt-BR',
   sidebarPinned: true,
   autoConnect: true,
-  // Still being tested - the switch in Configurações is locked off until it ships for real.
   runInBackground: false,
   onlineTranslator: false,
   translatorUrl: DEFAULT_TRANSLATOR_URL,

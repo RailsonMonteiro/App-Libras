@@ -24,10 +24,16 @@
 
   --shadow: 0 2px 10px rgba(99, 102, 241, 0.12);
   --shadow-hover: 0 6px 20px rgba(99, 102, 241, 0.18);
+  // The Página inicial logo's own soft shadow (DashboardView.vue) - off in dark mode below,
+  // where the same blur reads as a glowing halo/box behind the logo instead of a shadow.
+  --home-logo-glow: drop-shadow(0 10px 30px rgba(99, 102, 241, 0.35));
 
   --titlebar-height: 32px;
   --sidebar-width: 300px;
   --sidebar-collapsed-width: 72px;
+  // Trying a top navbar (AppNavbar.vue) in place of the sidebar (AppSidebar.vue, kept around
+  // unused so this is easy to undo) - just this one extra variable for its height.
+  --navbar-height: 56px;
   --border-radius: 14px;
   --transition: all 0.3s ease;
 }
@@ -43,6 +49,7 @@
   --sidebar-hover: rgba(99, 102, 241, 0.18);
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --home-logo-glow: none;
 }
 
 // The same treatment as the Página inicial's own name - used for every page's title now, so the

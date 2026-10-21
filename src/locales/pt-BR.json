@@ -6,10 +6,8 @@
   "nav": {
     "home": "Página inicial",
     "settings": "Configurações",
-    "louvorja": "Conexão",
     "slides": "Slides",
-    "projection": "Projeção",
-    "about": "Sobre"
+    "projection": "LouvorJA"
   },
   "sidebar": {
     "pin": "Fixar menu",
@@ -23,6 +21,7 @@
   },
   "settings": {
     "title": "Configurações",
+    "close": "Fechar",
     "general": "Geral",
     "language": "Idioma",
     "theme": "Tema",
@@ -35,7 +34,7 @@
     "saveError": "Não foi possível salvar a configuração.",
     "autoConnect": "Conectar automaticamente ao último LouvorJA ao abrir o aplicativo",
     "runInBackground": "Executar em segundo plano",
-    "runInBackgroundTesting": "Recurso em teste, ainda desativado nesta versão.",
+    "runInBackgroundHint": "Ao minimizar a janela, o app continua rodando na bandeja do sistema.",
     "libras": {
       "title": "Tradutor de Libras",
       "online": "Usar o tradutor online do VLibras",
@@ -70,15 +69,34 @@
     },
     "tabs": {
       "general": "Geral",
+      "connection": "Conexão",
       "translator": "Tradutor",
-      "overlay": "Overlay"
+      "overlay": "Overlay",
+      "updates": "Atualizações",
+      "about": "Sobre"
+    },
+    "updates": {
+      "title": "Atualizações",
+      "description": "Confira se há uma versão mais recente do app.",
+      "check": "Verificar atualizações",
+      "checking": "Procurando atualizações...",
+      "downloading": "Baixando a atualização... {percent}%",
+      "downloaded": "Versão {version} pronta - reinicie para instalar.",
+      "install": "Reiniciar e instalar",
+      "upToDate": "Você já está na versão mais recente.",
+      "error": "Não foi possível verificar agora. Tente de novo mais tarde.",
+      "unavailable": "Atualização automática não está disponível nesta instalação.",
+      "available": "Atualização disponível",
+      "newVersion": "Versão {version}",
+      "whatsNew": "O que mudou",
+      "noNotes": "Sem notas desta atualização.",
+      "updateNow": "Atualizar"
     }
   },
   "errors": {
     "apiUnavailable": "Este aplicativo precisa ser executado dentro do Electron."
   },
   "integration": {
-    "title": "Integração com o LouvorJA",
     "connect": "Conectar",
     "disconnect": "Desconectar",
     "cancel": "Cancelar",
@@ -128,7 +146,6 @@
     }
   },
   "slides": {
-    "title": "Slides",
     "current": "Slide atual",
     "live": "Ao vivo",
     "received": "Slides recebidos",
@@ -187,9 +204,10 @@
     "error": "Não foi possível traduzir."
   },
   "projection": {
-    "title": "Projeção",
     "stage": "Como está sendo projetado",
+    "controls": "Controles",
     "avatar": "Avatar e ajustes",
+    "adjustments": "Ajustes de interpretação",
     "signs": "Sinais",
     "noGloss": "Nenhuma glosa para interpretar ainda. Use \"Testar avatar\" para vê-lo em ação.",
     "status": {
@@ -273,42 +291,8 @@
     "purpose": "Traduzir e interpretar em Libras, em tempo real, o que é projetado no LouvorJA — gratuito e de código aberto para igrejas.",
     "version": "Versão {version}",
     "credits": {
-      "title": "Créditos",
+      "title": "Desenvolvedores",
       "description": "Quem criou e mantém o Louvor JA e esta distribuição em Libras."
-    },
-    "manual": {
-      "title": "Manual",
-      "description": "Como usar cada parte do app, e verificar se há uma versão nova.",
-      "open": "Ver manual",
-      "openHint": "Como usar cada parte do app",
-      "close": "Fechar",
-      "connection": {
-        "title": "Conexão",
-        "text": "Conecte-se ao LouvorJA para receber os slides automaticamente e sinalizar em Libras."
-      },
-      "slides": {
-        "title": "Slides",
-        "text": "Mostra o slide atual, ao vivo, e o histórico dos últimos recebidos do LouvorJA."
-      },
-      "projection": {
-        "title": "Projeção",
-        "text": "Escolha o avatar (Ícaro, Guga ou Hosana), veja como ele está sendo projetado e ajuste velocidade, posição, tamanho e opacidade."
-      },
-      "settings": {
-        "title": "Configurações",
-        "text": "Idioma, tema, o tradutor de Libras (local ou online) e o overlay - a janela transparente que mostra o avatar por cima de qualquer programa."
-      }
-    },
-    "updates": {
-      "check": "Verificar atualizações",
-      "checkHint": "Confira se há uma versão mais recente",
-      "checking": "Procurando atualizações...",
-      "downloading": "Baixando a atualização... {percent}%",
-      "downloaded": "Versão {version} pronta - reinicie para instalar.",
-      "install": "Reiniciar e instalar",
-      "upToDate": "Você já está na versão mais recente.",
-      "error": "Não foi possível verificar agora. Tente de novo mais tarde.",
-      "unavailable": "Atualização automática não está disponível nesta instalação."
     }
   }
 }

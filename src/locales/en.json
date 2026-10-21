@@ -6,10 +6,8 @@
   "nav": {
     "home": "Home",
     "settings": "Settings",
-    "louvorja": "Connection",
     "slides": "Slides",
-    "projection": "Projection",
-    "about": "About"
+    "projection": "LouvorJA"
   },
   "sidebar": {
     "pin": "Pin menu",
@@ -23,6 +21,7 @@
   },
   "settings": {
     "title": "Settings",
+    "close": "Close",
     "general": "General",
     "language": "Language",
     "theme": "Theme",
@@ -35,7 +34,7 @@
     "saveError": "Could not save the setting.",
     "autoConnect": "Automatically connect to the last LouvorJA when the app starts",
     "runInBackground": "Run in the background",
-    "runInBackgroundTesting": "Feature under testing, still off in this version.",
+    "runInBackgroundHint": "Minimizing the window leaves the app running in the system tray.",
     "libras": {
       "title": "Libras translator",
       "online": "Use the online VLibras translator",
@@ -70,15 +69,34 @@
     },
     "tabs": {
       "general": "General",
+      "connection": "Connection",
       "translator": "Translator",
-      "overlay": "Overlay"
+      "overlay": "Overlay",
+      "updates": "Updates",
+      "about": "About"
+    },
+    "updates": {
+      "title": "Updates",
+      "description": "Check whether a newer version of the app is available.",
+      "check": "Check for updates",
+      "checking": "Looking for updates...",
+      "downloading": "Downloading the update... {percent}%",
+      "downloaded": "Version {version} ready - restart to install.",
+      "install": "Restart and install",
+      "upToDate": "You're already on the latest version.",
+      "error": "Could not check right now. Try again later.",
+      "unavailable": "Automatic updates are not available in this install.",
+      "available": "Update available",
+      "newVersion": "Version {version}",
+      "whatsNew": "What's new",
+      "noNotes": "No notes for this update.",
+      "updateNow": "Update"
     }
   },
   "errors": {
     "apiUnavailable": "This application must run inside Electron."
   },
   "integration": {
-    "title": "LouvorJA integration",
     "connect": "Connect",
     "disconnect": "Disconnect",
     "cancel": "Cancel",
@@ -128,7 +146,6 @@
     }
   },
   "slides": {
-    "title": "Slides",
     "current": "Current slide",
     "live": "Live",
     "received": "Received slides",
@@ -187,9 +204,10 @@
     "error": "Could not translate."
   },
   "projection": {
-    "title": "Projection",
     "stage": "How it is being projected",
+    "controls": "Controls",
     "avatar": "Avatar and settings",
+    "adjustments": "Interpretation settings",
     "signs": "Signs",
     "noGloss": "No gloss to interpret yet. Use \"Test avatar\" to see it in action.",
     "status": {
@@ -273,42 +291,8 @@
     "purpose": "Translate and interpret into Libras, in real time, whatever LouvorJA projects — free and open source for churches.",
     "version": "Version {version}",
     "credits": {
-      "title": "Credits",
+      "title": "Developers",
       "description": "Who created and maintains Louvor JA and this Libras distribution."
-    },
-    "manual": {
-      "title": "Manual",
-      "description": "How to use each part of the app, and check for a newer version.",
-      "open": "View manual",
-      "openHint": "How to use each part of the app",
-      "close": "Close",
-      "connection": {
-        "title": "Connection",
-        "text": "Connect to LouvorJA to receive slides automatically and sign them in Libras."
-      },
-      "slides": {
-        "title": "Slides",
-        "text": "Shows the current slide, live, and the history of the last ones received from LouvorJA."
-      },
-      "projection": {
-        "title": "Projection",
-        "text": "Choose the avatar (Ícaro, Guga or Hosana), see how it is being projected, and adjust speed, position, size and opacity."
-      },
-      "settings": {
-        "title": "Settings",
-        "text": "Language, theme, the Libras translator (local or online) and the overlay - the transparent window that shows the avatar over any program."
-      }
-    },
-    "updates": {
-      "check": "Check for updates",
-      "checkHint": "Check whether a newer version is available",
-      "checking": "Checking for updates...",
-      "downloading": "Downloading the update... {percent}%",
-      "downloaded": "Version {version} is ready - restart to install.",
-      "install": "Restart and install",
-      "upToDate": "You already have the latest version.",
-      "error": "Could not check right now. Try again later.",
-      "unavailable": "Automatic updates are not available in this install."
     }
   }
 }

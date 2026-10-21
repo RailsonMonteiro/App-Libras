@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import ModuleHeader from '@/components/ModuleHeader.vue'
 import SlidePreview from '@/components/SlidePreview.vue'
 import GlossView from '@/modules/libras/components/GlossView.vue'
 import { useLouvorJAStore } from '@/modules/louvorja/stores/louvorja.store'
+import { openSettingsSection } from '@/modules/settings/sections'
 
 const store = useLouvorJAStore()
 
@@ -22,14 +22,16 @@ const isLive = computed(() => selected.value === null)
 
 <template>
   <div class="page-container">
-    <ModuleHeader :title="$t('slides.title')" icon="mdi-presentation" test-id="slides-title" />
-
     <v-card v-if="!store.currentSlide" data-testid="slides-empty">
       <v-card-text class="text-center py-12">
         <v-icon size="64" class="mb-4" color="primary">mdi-presentation-play</v-icon>
         <h2 class="text-h6 mb-2">{{ $t('slides.empty') }}</h2>
         <p class="text-medium-emphasis mb-6">{{ $t('slides.emptyHint') }}</p>
-        <v-btn :to="{ name: 'louvorja' }" color="primary" prepend-icon="mdi-lan-connect">
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-lan-connect"
+          @click="openSettingsSection('connection')"
+        >
           {{ $t('slides.goToIntegration') }}
         </v-btn>
       </v-card-text>

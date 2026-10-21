@@ -38,10 +38,6 @@ if (!app.requestSingleInstanceLock()) {
     const logs = new LogService(db)
     const settings = new SettingsService(db)
 
-    // "Executar em segundo plano" is still being tested (its switch in Configurações is locked
-    // off) - this undoes it too, in case an earlier build already saved it as on for this profile.
-    if (settings.getAll().runInBackground) settings.set('runInBackground', false)
-
     logs.prune()
     logs.info('app', `Started LouvorJA Libras ${app.getVersion()}`)
     // One line of OS/locale context per launch - the "Token recusado"/"não conecta" reports
@@ -73,7 +69,13 @@ if (!app.requestSingleInstanceLock()) {
     registerIpc({
       settings,
       logs,
-      onSettingsChanged: (updated) => syncTray(updated.runInBackground)
+      onSettingsChanged: (updated) => syncTray(updated.runInBackground),
+      onHideToTray: () => {
+        if (!hiddenToTrayOnce) {
+          hiddenToTrayOnce = true
+          notifyHiddenToTray(settings.getAll().locale)
+        }
+      }
     })
     registerLibrasIpc(libras)
     registerAvatarIpc(signs)
@@ -83,14 +85,6 @@ if (!app.requestSingleInstanceLock()) {
     const updater = new UpdaterService(logs)
     registerUpdaterIpc(updater)
     installAppMenu()
-
-    // "X" on the window only hides it - see wireWindow below - so the app otherwise never really
-    // quits on its own; before-quit (the tray's "Sair", Cmd+Q, the OS shutting down, ...) is the
-    // one signal that says a close should go through for real this time.
-    let isQuitting = false
-    app.on('before-quit', () => {
-      isQuitting = true
-    })
 
     let mainWindow = createMainWindow()
     let hiddenToTrayOnce = false
@@ -109,20 +103,10 @@ if (!app.requestSingleInstanceLock()) {
     syncTray(settings.getAll().runInBackground)
 
     // The overlay has no reason to outlive the main window (and would keep the app running).
-    // With "Executar em segundo plano" on, closing the window (or Alt+F4) leaves the app running
-    // in the tray instead of quitting it - the tray icon is otherwise the only trace it is still
-    // there. With it off, closing behaves like any other app: it quits.
+    // Minimizing is what leaves the app running in the tray now (see ipc/index.ts) - the titlebar
+    // close button always closes the window for real, same as any other app.
     function wireWindow(win: BrowserWindow): void {
       win.on('closed', () => overlay.close())
-      win.on('close', (event) => {
-        if (isQuitting || !settings.getAll().runInBackground) return
-        event.preventDefault()
-        win.hide()
-        if (!hiddenToTrayOnce) {
-          hiddenToTrayOnce = true
-          notifyHiddenToTray(settings.getAll().locale)
-        }
-      })
     }
     wireWindow(mainWindow)
 
@@ -156,8 +140,6 @@ if (!app.requestSingleInstanceLock()) {
     })
   })
 
-  // Only reached now if a window is destroyed for real (the tray's "Sair", or before-quit) - the
-  // "X" button no longer closes windows, it hides them (see wireWindow in whenReady above).
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit()
   })

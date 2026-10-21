@@ -28,6 +28,35 @@ periódica.
 - Da **mesma máquina** (conexão em `127.0.0.1`), nenhum token é exigido.
 - De **outra máquina**, o token é obrigatório, senão a resposta é `401` com `INVALID_TOKEN`.
 - v2: cabeçalho `Authorization: Bearer <token>` (preferido) ou `?token=`. v1: só `?token=`.
+- **O LouvorJA Libras manda o token só em `?token=`**, nunca no cabeçalho. Veja a seção abaixo.
+
+### Causa confirmada do "Token recusado": o cabeçalho `Bearer` (2026-10-03)
+
+Reproduzido ao vivo contra o LouvorJA instalado (`LouvorJA.exe` 26.10.0.0, de 14/08/2026), com o
+token certo (`123` no `configPT.ja` e no LouvorJA Libras):
+
+| Requisição para `192.168.46.130:7070`     | Resposta                                      |
+| ----------------------------------------- | --------------------------------------------- |
+| `/api/ping?token=123`                     | `200 {"status":"ok","app":"LouvorJA"}`        |
+| `/api/ping` + `Authorization: Bearer 123` | `401 Unsupported authorization scheme.`       |
+| `/api/v2/ping` (em `127.0.0.1`)           | `200` com a página 404: esse build não tem v2 |
+
+O servidor HTTP do LouvorJA (Indy) interpreta o cabeçalho `Authorization` sozinho e recusa
+qualquer esquema que não conhece, com 401, antes de o programa olhar o token. O código-fonte
+atual do LouvorJA já trata isso (`IdHTTPServer1ParseAuthentication` em `fmTransmitir.pas`), mas
+os builds distribuídos às igrejas são anteriores. O LouvorJA Libras mandava `Bearer` já no
+primeiro ping (`createAdapter.ts`), recebia esse 401, tratava como token errado (erro fatal) e
+nunca tentava a v1, que funcionaria.
+
+Corrigido do nosso lado, sem depender de redistribuir o LouvorJA: o token vai só em `?token=`
+(`createAdapter.ts` e `LouvorJAApiAdapter.ts`), que todas as versões leem: v1, v2
+(`v2TokenValido` aceita a URL) e violin-app. O simulador (`--dialect v1`) agora imita essa
+recusa do Indy, coberta por teste. O ping de detecção também passou a registrar no log o que o
+servidor disse num 401 (`INVALID_TOKEN` é recusa do LouvorJA, qualquer outra coisa vem de antes
+dele).
+
+As explicações abaixo (corretor do Windows, `geraToken` como valor padrão) eram hipóteses da
+época. Esta é a única confirmada numa máquina real.
 
 ### "Token recusado" em alguns computadores (Windows 11 Home Single Language) - 2026-09-23
 

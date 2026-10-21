@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { openSettings } from '@/modules/settings/sections'
 import { useLibrasStore } from '../stores/libras.store'
 import type { TokenAvailability, TranslationSource } from '../types/libras.types'
 
@@ -145,7 +146,7 @@ async function restore(): Promise<void> {
     >
       {{ $t(translation.source === 'local' ? 'libras.localHint' : 'libras.fallbackHint') }}
       <template #append>
-        <v-btn size="small" variant="text" :to="{ name: 'settings' }">
+        <v-btn size="small" variant="text" @click="openSettings()">
           {{ $t('libras.openSettings') }}
         </v-btn>
       </template>

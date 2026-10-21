@@ -55,6 +55,22 @@
       #splash .splash-logo {
         height: 100%;
       }
+      /* The mask stays put, aligned with the logo (same box as #splash .splash-logo, right above)
+         - only the gradient inside it (below) slides, so the light is confined to the mark's own
+         shape (its own SVG alpha, as a mask) instead of a hard-edged rectangle - same technique as
+         the Página inicial's own logo (DashboardView.vue). */
+      #splash .splash-logo-shine-mask {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        mask-image: url(/src/assets/images/logo.svg);
+        mask-size: 100% 100%;
+        mask-repeat: no-repeat;
+        -webkit-mask-image: url(/src/assets/images/logo.svg);
+        -webkit-mask-size: 100% 100%;
+        -webkit-mask-repeat: no-repeat;
+        pointer-events: none;
+      }
       /* A soft white band sweeping across the logo at an angle, then a pause before it repeats -
          a brief flash, not a nonstop tick. Moved by `transform` (not `background-position`, which
          is what made the old version feel choppy) so the compositor can animate it smoothly. */
@@ -70,7 +86,6 @@
         transform: translateX(-160%);
         animation: splash-shine-sweep 5s ease-in-out infinite;
         will-change: transform;
-        pointer-events: none;
       }
       /* Same duration and beats as .splash-title's own shine below, so the two sweep together
          instead of drifting in and out of step. */
@@ -208,7 +223,9 @@
       <div class="splash-brand">
         <div class="splash-logo-wrap">
           <img class="splash-logo" src="/src/assets/images/logo.svg" alt="" />
-          <div class="splash-logo-shine" aria-hidden="true"></div>
+          <div class="splash-logo-shine-mask" aria-hidden="true">
+            <div class="splash-logo-shine"></div>
+          </div>
         </div>
         <div class="splash-title">Iniciando o LouvorJA Libras</div>
         <div class="splash-subtitle">Aguarde, estamos preparando tudo para você.</div>

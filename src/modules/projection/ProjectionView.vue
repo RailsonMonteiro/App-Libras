@@ -7,7 +7,6 @@ import '@flaticon/flaticon-uicons/css/solid/straight.css'
 import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import ModuleHeader from '@/components/ModuleHeader.vue'
 import AvatarPicker from '@/modules/avatar/components/AvatarPicker.vue'
 import SignProgress from '@/modules/avatar/components/SignProgress.vue'
 import { useAvatarStore } from '@/modules/avatar/stores/avatar.store'
@@ -133,152 +132,16 @@ function togglePause(): void {
 
 <template>
   <div class="page-container">
-    <ModuleHeader
-      :title="$t('projection.title')"
-      icon="mdi-projector-screen"
-      test-id="projection-title"
-    />
-
     <v-row>
-      <v-col cols="12" lg="8">
-        <v-card :title="$t('projection.stage')" prepend-icon="mdi-monitor-eye">
-          <template #append>
-            <v-chip
-              :color="statusColor"
-              size="small"
-              label
-              data-testid="avatar-status"
-              :data-status="avatar.status"
-            >
-              <v-icon v-if="avatar.status === 'loading'" start class="mdi-spin" size="small">
-                mdi-loading
-              </v-icon>
-              {{ statusText }}
-            </v-chip>
-          </template>
-          <v-card-text>
-            <ProjectionStage />
-
-            <v-alert
-              v-if="avatar.status === 'unavailable'"
-              type="warning"
-              variant="tonal"
-              density="compact"
-              class="mt-4"
-              data-testid="avatar-unavailable"
-              :text="$t('projection.unavailableHint')"
-            />
-            <v-alert
-              v-else-if="avatar.status === 'error'"
-              type="error"
-              variant="tonal"
-              density="compact"
-              class="mt-4"
-              data-testid="avatar-error"
-              :text="$t('projection.errorHint')"
-            >
-              <template #append>
-                <v-btn
-                  size="small"
-                  variant="text"
-                  data-testid="avatar-retry"
-                  @click="avatar.retry()"
-                >
-                  {{ $t('projection.retry') }}
-                </v-btn>
-              </template>
-            </v-alert>
-
-            <div class="mt-4">
-              <div class="text-subtitle-2 mb-2">{{ $t('projection.position') }}</div>
-              <div class="position-picker" role="radiogroup" data-testid="avatar-position">
-                <button
-                  v-for="side in AVATAR_POSITIONS"
-                  :key="side"
-                  type="button"
-                  role="radio"
-                  class="position-option"
-                  :class="{ selected: settings.avatarPosition === side }"
-                  :aria-checked="settings.avatarPosition === side"
-                  :aria-label="$t(`projection.positions.${side}`)"
-                  @click="change('avatarPosition', side)"
-                >
-                  <span class="position-tile">
-                    <i
-                      class="position-icon"
-                      :class="[POSITION_ICON[side], { 'position-icon-flip': side === 'right' }]"
-                    />
-                    <v-icon
-                      v-if="settings.avatarPosition === side"
-                      size="15"
-                      class="position-check"
-                    >
-                      mdi-check-circle
-                    </v-icon>
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            <div class="mt-4">
-              <h3 class="text-subtitle-1 font-weight-medium mb-2">
-                {{ $t('projection.sync.title') }}
-              </h3>
-              <SyncStatus />
-            </div>
-
-            <div class="mt-4">
-              <h3 class="text-subtitle-1 font-weight-medium mb-2">{{ $t('projection.signs') }}</h3>
-              <SignProgress v-if="translation?.tokens.length" :tokens="translation.tokens" />
-              <p v-else class="text-medium-emphasis">{{ $t('projection.noGloss') }}</p>
-            </div>
-          </v-card-text>
-          <v-card-actions class="px-4 pb-4 ga-2">
-            <v-btn
-              color="primary"
-              prepend-icon="mdi-play"
-              :disabled="!avatar.ready"
-              data-testid="avatar-play"
-              @click="play"
-            >
-              {{ translation ? $t('projection.play') : $t('projection.test') }}
-            </v-btn>
-            <v-btn
-              variant="tonal"
-              :prepend-icon="avatar.paused ? 'mdi-play-pause' : 'mdi-pause'"
-              :disabled="!avatar.ready || !avatar.playing"
-              data-testid="avatar-pause"
-              @click="togglePause()"
-            >
-              {{ avatar.paused ? $t('projection.resume') : $t('projection.pause') }}
-            </v-btn>
-            <v-btn
-              variant="tonal"
-              prepend-icon="mdi-stop"
-              :disabled="!avatar.ready"
-              data-testid="avatar-stop"
-              @click="stop()"
-            >
-              {{ $t('projection.stop') }}
-            </v-btn>
-            <v-btn
-              variant="tonal"
-              prepend-icon="mdi-repeat"
-              :disabled="!avatar.ready || !avatar.gloss"
-              data-testid="avatar-repeat"
-              @click="repeat()"
-            >
-              {{ $t('projection.repeat') }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" lg="4">
+      <v-col cols="12" lg="4" class="d-flex flex-column ga-5">
         <v-card :title="$t('projection.avatar')" prepend-icon="mdi-account-voice">
           <v-card-text>
-            <AvatarPicker class="mb-5" />
+            <AvatarPicker />
+          </v-card-text>
+        </v-card>
 
+        <v-card :title="$t('projection.adjustments')" prepend-icon="mdi-tune-variant">
+          <v-card-text>
             <div class="text-subtitle-2 mb-1">{{ $t('projection.speed') }}</div>
             <div class="speed-picker mb-5" role="radiogroup" data-testid="avatar-speed">
               <div
@@ -363,11 +226,156 @@ function togglePause(): void {
           </v-card-text>
         </v-card>
       </v-col>
+
+      <v-col cols="12" lg="8" class="d-flex flex-column ga-5">
+        <v-card :title="$t('projection.stage')" prepend-icon="mdi-monitor-eye">
+          <template #append>
+            <v-chip
+              :color="statusColor"
+              size="small"
+              label
+              data-testid="avatar-status"
+              :data-status="avatar.status"
+            >
+              <v-icon v-if="avatar.status === 'loading'" start class="mdi-spin" size="small">
+                mdi-loading
+              </v-icon>
+              {{ statusText }}
+            </v-chip>
+          </template>
+          <v-card-text>
+            <ProjectionStage />
+
+            <v-alert
+              v-if="avatar.status === 'unavailable'"
+              type="warning"
+              variant="tonal"
+              density="compact"
+              class="mt-4"
+              data-testid="avatar-unavailable"
+              :text="$t('projection.unavailableHint')"
+            />
+            <v-alert
+              v-else-if="avatar.status === 'error'"
+              type="error"
+              variant="tonal"
+              density="compact"
+              class="mt-4"
+              data-testid="avatar-error"
+              :text="$t('projection.errorHint')"
+            >
+              <template #append>
+                <v-btn
+                  size="small"
+                  variant="text"
+                  data-testid="avatar-retry"
+                  @click="avatar.retry()"
+                >
+                  {{ $t('projection.retry') }}
+                </v-btn>
+              </template>
+            </v-alert>
+          </v-card-text>
+        </v-card>
+
+        <v-card :title="$t('projection.controls')" prepend-icon="mdi-tune">
+          <v-card-text>
+            <div>
+              <div class="text-subtitle-2 mb-2">{{ $t('projection.position') }}</div>
+              <div class="position-picker" role="radiogroup" data-testid="avatar-position">
+                <button
+                  v-for="side in AVATAR_POSITIONS"
+                  :key="side"
+                  type="button"
+                  role="radio"
+                  class="position-option"
+                  :class="{ selected: settings.avatarPosition === side }"
+                  :aria-checked="settings.avatarPosition === side"
+                  :aria-label="$t(`projection.positions.${side}`)"
+                  @click="change('avatarPosition', side)"
+                >
+                  <span class="position-tile">
+                    <i
+                      class="position-icon"
+                      :class="[POSITION_ICON[side], { 'position-icon-flip': side === 'right' }]"
+                    />
+                    <v-icon
+                      v-if="settings.avatarPosition === side"
+                      size="15"
+                      class="position-check"
+                    >
+                      mdi-check-circle
+                    </v-icon>
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <h3 class="text-subtitle-1 font-weight-medium mb-2">
+                {{ $t('projection.sync.title') }}
+              </h3>
+              <SyncStatus />
+            </div>
+
+            <div class="mt-4">
+              <h3 class="text-subtitle-1 font-weight-medium mb-2">{{ $t('projection.signs') }}</h3>
+              <SignProgress v-if="translation?.tokens.length" :tokens="translation.tokens" />
+              <p v-else class="text-medium-emphasis">{{ $t('projection.noGloss') }}</p>
+            </div>
+          </v-card-text>
+          <v-card-actions class="px-4 pb-4 ga-2">
+            <v-btn
+              color="primary"
+              prepend-icon="mdi-play"
+              :disabled="!avatar.ready"
+              data-testid="avatar-play"
+              @click="play"
+            >
+              {{ translation ? $t('projection.play') : $t('projection.test') }}
+            </v-btn>
+            <v-btn
+              variant="tonal"
+              :prepend-icon="avatar.paused ? 'mdi-play-pause' : 'mdi-pause'"
+              :disabled="!avatar.ready || !avatar.playing"
+              data-testid="avatar-pause"
+              @click="togglePause()"
+            >
+              {{ avatar.paused ? $t('projection.resume') : $t('projection.pause') }}
+            </v-btn>
+            <v-btn
+              variant="tonal"
+              prepend-icon="mdi-stop"
+              :disabled="!avatar.ready"
+              data-testid="avatar-stop"
+              @click="stop()"
+            >
+              {{ $t('projection.stop') }}
+            </v-btn>
+            <v-btn
+              variant="tonal"
+              prepend-icon="mdi-repeat"
+              :disabled="!avatar.ready || !avatar.gloss"
+              data-testid="avatar-repeat"
+              @click="repeat()"
+            >
+              {{ $t('projection.repeat') }}
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-col>
     </v-row>
   </div>
 </template>
 
 <style scoped>
+/* .page-container (main.scss) centres its max-width in the content area, which left this page's
+   two columns floating with empty space to their own left instead of starting at the edge every
+   other row of content already starts from (same fix as Configurações, SettingsView.vue). */
+.page-container {
+  margin-inline: 0;
+}
+
 /* No box around the row itself: a single pill highlight (fully rounded ends, not a stretched
    rectangle) slides to whichever speed is chosen, instead of jumping. Fixed-size options (44px
    + 8px gap, matching the thumb's own size and the translateX step in the template) rather than

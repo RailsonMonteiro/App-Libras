@@ -8,8 +8,8 @@ export { AVATAR_ASPECT } from './placement'
 
 /**
  * Tells the avatar layer where to stand: on the bottom of `stage`, at the side, and as tall as
- * the settings say. Follows the stage when the window is resized, the page scrolls or the
- * sidebar slides. Gives the spot back when the page goes away.
+ * the settings say. Follows the stage when the window is resized or the page scrolls. Gives the
+ * spot back when the page goes away.
  */
 export function useAvatarPlacement(stage: Ref<HTMLElement | null>): void {
   const avatar = useAvatarStore()

@@ -1,21 +1,18 @@
 export interface NavItem {
   name: string
-  /**
-   * Material Design Icons class (the same icon set used by LouvorJA), or a Flaticon UIcons class
-   * ("fi fi-rr-...", see AppSidebar.vue) for the one item that uses it.
-   */
+  /** Material Design Icons class (the same icon set used by LouvorJA). */
   icon: string
   /** vue-i18n key of the label */
   label: string
-  /** `main` items sit in the middle of the sidebar, `footer` items at the bottom. */
+  /** `main` items sit in the middle of the navbar, `footer` items in its corners. */
   area: 'main' | 'footer'
 }
 
+// "Sobre" and "Conexão" live inside Configurações now (their own tabs there, see sections.ts) -
+// no longer nav items of their own.
 export const navItems: NavItem[] = [
   { name: 'home', icon: 'mdi-home', label: 'nav.home', area: 'main' },
   { name: 'projection', icon: 'mdi-projector-screen', label: 'nav.projection', area: 'main' },
   { name: 'slides', icon: 'mdi-presentation', label: 'nav.slides', area: 'main' },
-  { name: 'louvorja', icon: 'fi fi-rr-link', label: 'nav.louvorja', area: 'main' },
-  { name: 'about', icon: 'fi fi-sr-info', label: 'nav.about', area: 'footer' },
-  { name: 'settings', icon: 'mdi-cog', label: 'nav.settings', area: 'footer' }
+  { name: 'settings', icon: 'mdi-sort', label: 'nav.settings', area: 'footer' }
 ]

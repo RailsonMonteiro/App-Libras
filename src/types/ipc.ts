@@ -118,6 +118,8 @@ export interface UpdaterState {
   version: string | null
   /** 0-100 while `downloading`. */
   progressPercent: number | null
+  /** What changed in `version` (plain text, from the GitHub release body), once known. */
+  releaseNotes: string | null
   error: string | null
 }
 

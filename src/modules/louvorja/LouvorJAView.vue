@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import HelpIcon from '@/components/HelpIcon.vue'
-import ModuleHeader from '@/components/ModuleHeader.vue'
 import SettingsSection from '@/modules/settings/SettingsSection.vue'
 import ConnectionForm from './components/ConnectionForm.vue'
 import ConnectionInfoCard from './components/ConnectionInfoCard.vue'
@@ -29,29 +28,21 @@ watch(
 </script>
 
 <template>
-  <div class="page-container">
-    <ModuleHeader :title="$t('integration.title')" icon="fi fi-rr-link" test-id="louvorja-title" />
+  <div class="d-flex flex-column ga-5">
+    <SettingsSection icon="mdi-link-variant" :title="$t('integration.form.title')">
+      <template #actions>
+        <HelpIcon
+          :title="$t('integration.help.title')"
+          :text="$t('integration.help.text')"
+          test-id="connection-help"
+        />
+        <ConnectionStateChip :state="store.status.state" />
+      </template>
 
-    <v-row justify="center">
-      <v-col cols="12" md="7" lg="6">
-        <SettingsSection icon="mdi-link-variant" :title="$t('integration.form.title')">
-          <template #actions>
-            <HelpIcon
-              :title="$t('integration.help.title')"
-              :text="$t('integration.help.text')"
-              test-id="connection-help"
-            />
-            <ConnectionStateChip :state="store.status.state" />
-          </template>
+      <ConnectionStatus :status="store.status" />
+      <ConnectionForm v-model="form" />
+    </SettingsSection>
 
-          <ConnectionStatus :status="store.status" />
-          <ConnectionForm v-model="form" />
-        </SettingsSection>
-      </v-col>
-
-      <v-col cols="12" md="5" lg="4">
-        <ConnectionInfoCard :status="store.status" />
-      </v-col>
-    </v-row>
+    <ConnectionInfoCard :status="store.status" />
   </div>
 </template>

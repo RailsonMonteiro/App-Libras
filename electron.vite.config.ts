@@ -35,10 +35,13 @@ export default defineConfig({
     // does, binding to it fails with EACCES, not EADDRINUSE, so Vite's usual "try the next port"
     // fallback never kicks in (it only retries on EADDRINUSE) and `npm run dev` cannot start at
     // all. A different, less commonly-reserved port sidesteps that - not a real fix for the
-    // Windows-side reservation (it can still land on any port on a future reboot), but electron
-    // itself is pointed at whatever port this picks automatically, so changing it here needs
-    // nothing else to be updated.
-    server: { port: 5679, strictPort: false },
+    // Windows-side reservation, since the excluded ranges are reassigned on reboot and can land
+    // on any port again (this one replaces 5679, which ran into exactly that - it fell inside a
+    // freshly-reserved 5631-5730 range). If `npm run dev` ever reports the same EACCES again,
+    // run that netsh command, pick a port outside every range it lists, and swap it in here -
+    // electron itself is pointed at whatever port this picks automatically, so nothing else
+    // needs to change.
+    server: { port: 4873, strictPort: false },
     // Dev only. vite-plugin-vuetify's autoImport turns <v-btn> into a deep import
     // ('vuetify/components/VBtn') that Vite's start-up scan cannot see. Left to the pre-bundler,
     // each one was discovered on first use, which re-optimized the dependencies and reloaded the

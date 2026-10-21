@@ -12,11 +12,6 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/modules/dashboard/DashboardView.vue')
   },
   {
-    path: '/louvorja',
-    name: 'louvorja',
-    component: () => import('@/modules/louvorja/LouvorJAView.vue')
-  },
-  {
     path: '/slides',
     name: 'slides',
     component: () => import('@/modules/slides/SlidesView.vue')
@@ -26,16 +21,8 @@ const routes: RouteRecordRaw[] = [
     name: 'projection',
     component: () => import('@/modules/projection/ProjectionView.vue')
   },
-  {
-    path: '/settings',
-    name: 'settings',
-    component: () => import('@/modules/settings/SettingsView.vue')
-  },
-  {
-    path: '/about',
-    name: 'about',
-    component: () => import('@/modules/about/AboutView.vue')
-  },
+  // Configurações (and "Sobre"/"Conexão" inside it) is a slide-out drawer now
+  // (SettingsDrawer.vue, App.vue), opened by a click handler - not a route of its own any more.
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 
