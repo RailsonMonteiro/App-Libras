@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LouvorJA Libras</title>
+    <title>APP Libras</title>
     <!-- The opening screen is plain HTML and CSS: it is painted before any script has run. -->
     <style>
       html,
@@ -50,10 +50,21 @@
         overflow: hidden;
         /* Reserves the right width from the very first layout, before the file is even fetched,
            so the logo never pops from a small placeholder box to its full size. */
-        aspect-ratio: 392 / 300;
+        aspect-ratio: 1 / 1;
       }
       #splash .splash-logo {
         height: 100%;
+        /* TEMPORARY - just a test, remove if it doesn't stick. */
+        animation: splash-logo-wobble 2s ease-in-out infinite;
+      }
+      @keyframes splash-logo-wobble {
+        0%,
+        100% {
+          transform: rotate(-6deg);
+        }
+        50% {
+          transform: rotate(6deg);
+        }
       }
       /* The mask stays put, aligned with the logo (same box as #splash .splash-logo, right above)
          - only the gradient inside it (below) slides, so the light is confined to the mark's own
@@ -63,10 +74,10 @@
         position: absolute;
         inset: 0;
         overflow: hidden;
-        mask-image: url(/src/assets/images/logo.svg);
+        mask-image: url(/src/assets/images/icon_electron.webp);
         mask-size: 100% 100%;
         mask-repeat: no-repeat;
-        -webkit-mask-image: url(/src/assets/images/logo.svg);
+        -webkit-mask-image: url(/src/assets/images/icon_electron.webp);
         -webkit-mask-size: 100% 100%;
         -webkit-mask-repeat: no-repeat;
         pointer-events: none;
@@ -222,12 +233,12 @@
     <div id="splash" role="status" aria-live="polite" data-testid="splash">
       <div class="splash-brand">
         <div class="splash-logo-wrap">
-          <img class="splash-logo" src="/src/assets/images/logo.svg" alt="" />
+          <img class="splash-logo" src="/src/assets/images/icon_electron.webp" alt="" />
           <div class="splash-logo-shine-mask" aria-hidden="true">
             <div class="splash-logo-shine"></div>
           </div>
         </div>
-        <div class="splash-title">Iniciando o LouvorJA Libras</div>
+        <div class="splash-title">Iniciando o app Libras</div>
         <div class="splash-subtitle">Aguarde, estamos preparando tudo para você.</div>
       </div>
       <div class="splash-bar-row">

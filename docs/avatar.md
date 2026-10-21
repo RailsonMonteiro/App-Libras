@@ -9,17 +9,17 @@ Esta página explica como ele é instalado, como o app conversa com ele e como a
 Tela **Projeção** (`/projection`), coluna "Avatar e ajustes". Tudo é guardado nas configurações
 (SQLite) e reaplicado quando o app abre:
 
-| Ajuste               | Chave                          | Valores                                |
-| -------------------- | ------------------------------ | -------------------------------------- |
-| Avatar               | `avatar`                       | `icaro`, `guga`, `hosana`              |
-| Velocidade           | `avatarSpeed`                  | 0.5, 1, 1.5, 2, 2.5                    |
-| Região dos sinais    | `signRegion`                   | `BR` (padrão nacional) e os 27 estados |
-| Interpretar sozinho  | `autoInterpret`                | liga/desliga; a cada slide novo        |
-| Nome do sinal        | `avatarSubtitles`              | legenda do player                      |
-| Slide ao fundo       | `stageShowSlide`               | mostra o texto do slide no palco       |
-| Posição              | `avatarPosition`               | `left`, `center`, `right`              |
-| Tamanho / opacidade  | `avatarScale`, `avatarOpacity` | 30–100 % / 20–100 %                    |
-| Dicionário de sinais | `dictionaryUrl`                | http(s); em Configurações              |
+| Ajuste               | Chave                          | Valores                                     |
+| -------------------- | ------------------------------ | ------------------------------------------- |
+| Avatar               | `avatar`                       | `icaro`, `guga`, `hosana`                   |
+| Velocidade           | `avatarSpeed`                  | 0.5 a 3.0, em passos de 0.5                 |
+| Região dos sinais    | `signRegion`                   | `BR` (padrão nacional) e os 27 estados      |
+| Interpretar sozinho  | `autoInterpret`                | liga/desliga; a cada slide novo             |
+| Nome do sinal        | `avatarSubtitles`              | legenda do player                           |
+| Slide ao fundo       | `stageShowSlide`               | mostra o texto do slide no palco            |
+| Posição              | `avatarPosition`               | 0 (esquerda) a 100 (direita), 50 é o centro |
+| Tamanho / opacidade  | `avatarScale`, `avatarOpacity` | 0–100 % / 20–100 %                          |
+| Dicionário de sinais | `dictionaryUrl`                | http(s); em Configurações                   |
 
 ## O palco (`ProjectionStage`)
 

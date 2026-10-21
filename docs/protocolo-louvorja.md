@@ -1,7 +1,7 @@
 # Integração com o servidor de transmissão do LouvorJA
 
 Este documento descreve como o LouvorJA (versão desktop em Delphi, pasta `desktop-main`) transmite
-o que está na tela, e como o LouvorJA Libras o consome. Tudo foi tirado da leitura do código-fonte
+o que está na tela, e como o APP Libras o consome. Tudo foi tirado da leitura do código-fonte
 do LouvorJA (`fmTransmitir.pas`, `fmMusica.pas`, `fmMenu.pas`, `server/`). **Ainda não foi
 verificado contra o programa em execução**: veja a seção 6.
 
@@ -28,12 +28,12 @@ periódica.
 - Da **mesma máquina** (conexão em `127.0.0.1`), nenhum token é exigido.
 - De **outra máquina**, o token é obrigatório, senão a resposta é `401` com `INVALID_TOKEN`.
 - v2: cabeçalho `Authorization: Bearer <token>` (preferido) ou `?token=`. v1: só `?token=`.
-- **O LouvorJA Libras manda o token só em `?token=`**, nunca no cabeçalho. Veja a seção abaixo.
+- **O APP Libras manda o token só em `?token=`**, nunca no cabeçalho. Veja a seção abaixo.
 
 ### Causa confirmada do "Token recusado": o cabeçalho `Bearer` (2026-10-03)
 
 Reproduzido ao vivo contra o LouvorJA instalado (`LouvorJA.exe` 26.10.0.0, de 14/08/2026), com o
-token certo (`123` no `configPT.ja` e no LouvorJA Libras):
+token certo (`123` no `configPT.ja` e no APP Libras):
 
 | Requisição para `192.168.46.130:7070`     | Resposta                                      |
 | ----------------------------------------- | --------------------------------------------- |
@@ -44,7 +44,7 @@ token certo (`123` no `configPT.ja` e no LouvorJA Libras):
 O servidor HTTP do LouvorJA (Indy) interpreta o cabeçalho `Authorization` sozinho e recusa
 qualquer esquema que não conhece, com 401, antes de o programa olhar o token. O código-fonte
 atual do LouvorJA já trata isso (`IdHTTPServer1ParseAuthentication` em `fmTransmitir.pas`), mas
-os builds distribuídos às igrejas são anteriores. O LouvorJA Libras mandava `Bearer` já no
+os builds distribuídos às igrejas são anteriores. O APP Libras mandava `Bearer` já no
 primeiro ping (`createAdapter.ts`), recebia esse 401, tratava como token errado (erro fatal) e
 nunca tentava a v1, que funcionaria.
 
@@ -57,6 +57,17 @@ dele).
 
 As explicações abaixo (corretor do Windows, `geraToken` como valor padrão) eram hipóteses da
 época. Esta é a única confirmada numa máquina real.
+
+**Correção incompleta até 2026-10-21**: o parágrafo acima descrevia a intenção, mas o código não
+chegava a cumprir - `createAdapter.ts` ainda mandava `Authorization: Bearer` **e** `?token=`
+juntos no ping de detecção, e `LouvorJAApiAdapter.ts` mandava **só** o cabeçalho em toda
+requisição v2 (não só no ping - em cada consulta a cada 700 ms). Contra qualquer LouvorJA sem o
+`IdHTTPServer1ParseAuthentication` corrigido (o caso comum, já dito acima), isso reproduzia
+exatamente este mesmo bug. Encontrado relendo `fmTransmitir.pas` de verdade (não só a versão
+documentada aqui) e corrigido para query-only nos dois arquivos, sem exceção para v2. O
+simulador ganhou `rejectBearerHeader` para testar exatamente esse caso (LouvorJA "não corrigido"
+
+- v2), separado do `--dialect v1` que já existia.
 
 ### "Token recusado" em alguns computadores (Windows 11 Home Single Language) - 2026-09-23
 
@@ -152,16 +163,17 @@ indício forte de que a causa raiz (documentada acima) é real. Sugestão para o
 não aplicada por ora (o atalho de colar o link já cobre o problema do nosso lado): mudar
 `geraToken` para `A-Z0-9` e trocar a comparação exata por `SameText()`.
 
-## Suporte a outras distribuições (`violin-app`, `app-Piano`)
+## Suporte a outras distribuições (`violin-app`, `LouvorJA Flute`, `app-Piano`)
 
 `createAdapterFactory` (`electron/services/louvorja/adapters/createAdapter.ts`) faz um pequeno
 diagnóstico HTTP (no máximo 2 requisições - as mesmas que `LouvorJAApiAdapter.connect()` já faria)
 antes de escolher o adaptador certo:
 
 1. `GET /api/v2/ping` responde `{"app":"LouvorJA"}` → é o LouvorJA original (Delphi) com a v2.
-2. Senão, `GET /api/ping` responde `{"app":"LouvorJA"}` → LouvorJA original v1 **ou** `violin-app`
-   - os dois respondem quase igual, mas só o `violin-app` inclui os campos `authorized` e
-     `permissions` (o dele tem pareamento de dispositivos; o Delphi não). É essa a diferença usada.
+2. Senão, `GET /api/ping` responde `{"app":"LouvorJA"}` → LouvorJA original v1, `violin-app` **ou**
+   LouvorJA Flute - os três respondem quase igual, mas cada um dos dois últimos carrega campos
+   extras que o Delphi nunca tem: `violin-app` tem `authorized`/`permissions` (pareamento de
+   dispositivos); LouvorJA Flute tem `running`/`tokenRequired`. É essa a diferença usada.
 3. Nenhuma resposta HTTP (conexão recusada, não timeout) → tenta o WebSocket do `app-Piano`.
 
 ### `violin-app`: adaptador próprio, via SSE (`ViolinAppAdapter.ts`)
@@ -172,15 +184,46 @@ leitura do código sugeria. `violin-app` tem seu próprio formato, nem v1 nem v2
 `GET /api/song-slides?action=playing-check` existe, mas é só para a aba do app remoto, e devolve
 o array `slides` inteiro por trás, não o formato de pergunta/resposta do Delphi.
 
-Eventos SSE lidos (`electron/main/httpServer/events.js` no `violin-app`):
+Eventos SSE lidos (`electron/main/httpServer/events.js` no `violin-app`, conferido direto no
+código-fonte do `violin-app` em 2026-10-21, não só por fora):
 
-- `music_presentation_snapshot` → `{snapshot:{active, sessionId, title, slide:{lyric}, nextSlide}}`
-  - letra atual/próxima da música (`<br>` como quebra de linha, igual ao Delphi).
-- `bible_verse` → `{text, reference, active}` - mesmo formato que a v2 do Delphi já usa.
+- `music_presentation_snapshot` → o payload real é bem mais largo que só o que usamos:
+  `{schema, selectionRevision, progress, slideProgress, emittedAt, snapshot:{sessionId, revision,
+active, title, slideIndex, totalSlides, slide:{lyric,...}, nextSlide:{lyric,...}|null}}`.
+  `ViolinAppAdapter` só lê `active`/`sessionId`/`title`/`slide.lyric`/`nextSlide.lyric` (letra
+  atual/próxima, `<br>` como quebra de linha, igual ao Delphi) e, desde que isso foi conferido,
+  também `slideIndex`/`totalSlides` (`Slide.index`/`total`).
+- `bible_verse` → `{text, reference, active, next_text, next_reference, ...}` - formato parecido
+  com o que a v2 do Delphi usa, mas com o próximo versículo já pronto em `next_text`
+  (`Slide.nextText`, igual ao `nextSlide.lyric` da música); `next_reference` não tem onde entrar
+  no nosso `Slide` hoje, fica sem uso.
 - `media_close` → encerra a apresentação.
 
 `slide_change`/`slides_data` (o editor, sem uma música realmente "tocando") não são tratados
 nesta primeira versão - simplificação deliberada, não descuido.
+
+### LouvorJA Flute: por polling, igual ao Delphi, mas com sua própria API (`LouvorJAFluteAdapter.ts`)
+
+Lido direto do código-fonte (2026-10-21, "D:\Meus Projetos\LouvorJA-Flute",
+`electron/services/streaming-server.ts`). Descoberta importante: ao contrário do que se supunha
+antes de ler o código, **não é compatível com a API v1/v2 do Delphi** - tem o próprio formato,
+sem namespace `/api/v2`, e o token pode vir por `?token=` ou pelo cabeçalho `api-token` (nunca
+`Authorization`, então o bug do `Bearer` não existe aqui). Mesmo assim é por _polling_, não SSE:
+`GET /api/status` devolve o objeto inteiro em uma só requisição -
+`{status:"ok", data:{type:"media"|"bible"|"idle", slideIndex, totalSlides, currentLyric,
+nextLyric, bibleText, bibleReference, ...}}`, letra com `<br>` como quebra de linha igual ao
+Delphi e ao `violin-app`.
+
+Pegadinha encontrada no próprio código: **`/api/status` não confere o token** - a checagem de
+token (`pathname.startsWith("/api/")`) só roda depois dele já ter respondido e saído. Só
+`GET /api/verify-token` confere de verdade (`200 {valid:true}` ou `401`), então
+`LouvorJAFluteAdapter.connect()` chama essa rota antes de começar a repetir `/api/status` -
+senão um token errado "funcionaria" para sempre, sem nunca ser recusado.
+
+Sem Bíblia com "próximo versículo" (ao contrário do `violin-app`) - `bible_verse` do lado da UI só
+manda `text`/`scriptural_reference`/`version`, sem nenhum "next". `index`/`total` da música vêm
+prontos (`slideIndex`/`totalSlides`, 0-based, igual ao nosso `Slide.index`) - diferente do Delphi
+e do `violin-app`'s música, que não têm isso.
 
 ### `app-Piano`: só conexão, sem legendas (`LouvorJAPianoAdapter.ts`)
 
@@ -197,9 +240,9 @@ como `app-Piano` (`describe().protocol === 'piano'`) e nunca dispara um evento d
 para a conexão não falhar de cara, não para sinalizar nada ainda.
 
 Outra particularidade aceita como está: o protocolo de controle remoto do `app-Piano` só permite
-**um cliente WebSocket por vez** (pensado para o app de celular). Conectar o LouvorJA Libras
+**um cliente WebSocket por vez** (pensado para o app de celular). Conectar o APP Libras
 disputa esse lugar - se o celular já estiver conectado, a tentativa é recusada (`remote_busy`) e
-tentada de novo com o mesmo backoff de qualquer outra falha; se o LouvorJA Libras conectar
+tentada de novo com o mesmo backoff de qualquer outra falha; se o APP Libras conectar
 primeiro, é o celular que fica de fora enquanto isso. Resolver isso de verdade exigiria mudar o
 `app-Piano` para aceitar mais de um cliente - fora do alcance deste projeto por ora.
 
@@ -237,7 +280,7 @@ o corpo da resposta.
 - O tipo do slide (`capa`, `letra`...) só existe no arquivo `file.ja`, que não usamos.
 - Não há evento de "música aberta" ou "música fechada": deduzimos por `playing`.
 
-## 3. Como o LouvorJA Libras usa isso
+## 3. Como o APP Libras usa isso
 
 `electron/services/louvorja/adapters/LouvorJAApiAdapter.ts` faz uma consulta a cada 700 ms e
 transforma mudanças em eventos:
@@ -257,6 +300,23 @@ transforma mudanças em eventos:
 Antes de traduzir, o texto em maiúsculas recebe de volta a caixa normal (`restoreCase`), porque o
 tradutor do VLibras usa maiúsculas como pista de nome próprio. No teste com o serviço oficial, 18 de
 20 frases davam o mesmo resultado, e as outras 2 pioravam (`O MEU PASTOR`).
+
+### Uma conexão só, com o nome do programa detectado automaticamente (2026-10-21)
+
+Durante um tempo (2026-10-21) a tela de Conexão teve três cards separados - "LouvorJA",
+"LouvorJA Flute" e "LouvorJA Violin" - cada um com seu próprio host/porta/token salvo
+(`database/migrations/0007_connection_profiles.sql`). Isso foi revertido no mesmo dia: a tela
+voltou a ter um único card/formulário (`database/migrations/0008_single_connection.sql` desfaz o
+schema por perfil, ficando só com `connections (host, port, token, ...)` de novo), porque pedir
+para escolher o perfil antes de conectar era redundante - a detecção automática de protocolo
+(`createAdapter.ts`) já descobre sozinha, a partir da resposta do `/api/ping`/`/api/v2/ping`, qual
+dos quatro programas está do outro lado (LouvorJA v1/v2, `violin-app`, LouvorJA Flute ou
+app-Piano). Em vez de perguntar antes, o app agora só mostra o resultado depois: uma vez
+conectado, `ConnectionStatus.server.protocol` (`'v2' | 'v1' | 'violin' | 'flute' | 'piano'`) é
+usado para trocar o ícone do card e o título pelo nome e logo do programa real
+(`integration.protocols.*` nos arquivos de idioma; `LouvorJAView.vue`). Antes de conectar, ou
+enquanto a conexão cai e tenta de novo, o card mostra um ícone/título genérico, já que ainda não
+se sabe qual programa vai responder.
 
 ## 4. Limitações conhecidas
 
@@ -288,7 +348,7 @@ O simulador foi escrito a partir do código-fonte, então o que falta provar é 
 o Indy, responde exatamente assim. Roteiro (2 minutos):
 
 1. No LouvorJA, aba **Transmitir**, anote o endereço, a porta e o token e clique em _Iniciar Servidor_.
-2. No LouvorJA Libras, página **LouvorJA**, informe esses dados e conecte. A linha "Programa:
+2. No APP Libras, página **LouvorJA**, informe esses dados e conecte. A linha "Programa:
    LouvorJA _versão_ (API v2)" confirma que achou o programa certo.
 3. Abra uma música e avance os slides: a página **Slides** deve acompanhar, com o texto em maiúsculas.
 4. Feche a música e projete um versículo na aba Bíblia: ele deve aparecer com a referência.

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import logoUrl from '@/assets/images/logo.svg'
+import logoUrl from '@/assets/images/icon_electron.webp'
 
 /* Masks the shine (below) to the logo's own silhouette instead of a plain rectangle - the SVG's
    own alpha (transparent outside the mark) becomes the mask. Bound here rather than baked into
@@ -33,7 +33,7 @@ const logoShineStyle = {
       </div>
     </div>
     <div class="home-text">
-      <div class="home-name gradient-text">{{ $t('app.name') }}</div>
+      <div class="home-name gradient-text">{{ $t('home.title') }}</div>
       <div class="home-tagline">{{ $t('app.tagline') }}</div>
     </div>
   </div>
@@ -67,7 +67,20 @@ const logoShineStyle = {
   /* Off in dark mode (main.scss: --home-logo-glow) - the same blur that reads as a subtle shadow
      on the light background shows up as a glowing box behind the logo on the dark one. */
   filter: var(--home-logo-glow);
-  animation: home-logo-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  /* TEMPORARY - just a test, remove if it doesn't stick (same wobble as index.html's splash). */
+  animation:
+    home-logo-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both,
+    home-logo-wobble 2s ease-in-out infinite;
+}
+
+@keyframes home-logo-wobble {
+  0%,
+  100% {
+    transform: rotate(-6deg);
+  }
+  50% {
+    transform: rotate(6deg);
+  }
 }
 
 /* The mask itself stays put, aligned with the logo (inset matches the wrap's own padding above,
@@ -143,9 +156,11 @@ const logoShineStyle = {
   font-weight: 800;
   letter-spacing: 1px;
   text-transform: uppercase;
+  /* Kept at the old indigo (not --accent-gradient, now teal) - the brand presentation on this
+     screen stays as it was, even after the rest of the app's accent colour changed. */
   background:
     linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.9) 50%, transparent 60%),
-    var(--accent-gradient);
+    linear-gradient(120deg, #6366f1 0%, #14b8a6 100%);
   background-repeat: no-repeat, no-repeat;
   background-size:
     60% 100%,

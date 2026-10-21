@@ -70,7 +70,7 @@ export class LouvorJAPianoAdapter implements LouvorJAAdapter {
         this.options.connectTimeoutMs ?? 8000
       )
       const onOpen = (): void => {
-        socket.send(JSON.stringify({ v: 1, type: 'hello', device: 'LouvorJA Libras' }))
+        socket.send(JSON.stringify({ v: 1, type: 'hello', device: 'APP Libras' }))
         // The server answers "busy" (and closes) right away, never later - a short, fixed grace
         // window is enough to know a genuine "open" was not immediately followed by that.
         setTimeout(() => finish(resolve), this.options.busyGraceMs ?? 150)

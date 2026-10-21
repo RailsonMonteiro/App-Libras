@@ -5,6 +5,7 @@ import type {
 } from '../../../../src/modules/louvorja/types/louvorja.types'
 import { ConnectionError, type AdapterFactory, type LouvorJAAdapter } from './LouvorJAAdapter'
 import { LouvorJAApiAdapter, type LouvorJAApiAdapterOptions } from './LouvorJAApiAdapter'
+import { LouvorJAFluteAdapter } from './LouvorJAFluteAdapter'
 import { LouvorJAPianoAdapter } from './LouvorJAPianoAdapter'
 import { ViolinAppAdapter } from './ViolinAppAdapter'
 import { describeError } from './errorDetail'
@@ -14,6 +15,7 @@ type PingOutcome =
   | { kind: 'louvorja-v2' }
   | { kind: 'louvorja-v1' }
   | { kind: 'violin' }
+  | { kind: 'flute' }
   | { kind: 'incompatible' }
   | { kind: 'unauthorized' }
   /** No HTTP server answered at all - worth trying app-Piano's WebSocket next. */
@@ -27,12 +29,13 @@ async function ping(
 ): Promise<{ status: number; body: Record<string, unknown> | null } | null> {
   const url = new URL(`http://${endpoint.host}:${endpoint.port}${path}`)
   const headers: Record<string, string> = { accept: 'application/json' }
-  if (endpoint.token) {
-    // v2 (LouvorJA) prefers the header; violin-app's global token only ever reads the query
-    // string - sending both covers whichever of the two actually answers.
-    headers.authorization = `Bearer ${endpoint.token}`
-    url.searchParams.set('token', endpoint.token)
-  }
+  // Query string only, for v2 (LouvorJA) and violin-app alike: Indy's own `OnParseAuthentication`
+  // rejects any `Authorization` scheme it does not itself recognize with a 401, *before* the
+  // request ever reaches LouvorJA's own route handler - see docs/protocolo-louvorja.md, "Causa
+  // confirmada do 'Token recusado'". `v2TokenValido` (the real Delphi source) already falls back
+  // to the query string when there is no `Bearer` header, so this has no downside against any
+  // LouvorJA build, fixed or not.
+  if (endpoint.token) url.searchParams.set('token', endpoint.token)
   try {
     const response = await fetch(url, {
       headers,
@@ -52,13 +55,15 @@ async function ping(
 
 /**
  * One HTTP probe (two requests at most - the same ones `LouvorJAApiAdapter.connect()` would make
- * anyway) to tell apart the three servers this app can talk to, before committing to an adapter:
+ * anyway) to tell apart the four servers this app can talk to, before committing to an adapter:
  *
- * - Only the original LouvorJA (Delphi) answers `/api/v2/ping` - violin-app has no `/api/v2/*`
- *   routes at all, and app-Piano is not HTTP.
- * - Both the original LouvorJA's v1 and violin-app answer `/api/ping` the same way at a glance
- *   (`{"app":"LouvorJA"}`), but violin-app's also carries `authorized`/`permissions` fields the
- *   Delphi one never has (see docs/protocolo-louvorja.md) - that is the tell.
+ * - Only the original LouvorJA (Delphi) answers `/api/v2/ping` - violin-app and LouvorJA Flute
+ *   have no `/api/v2/*` routes at all, and app-Piano is not HTTP.
+ * - The original LouvorJA's v1, violin-app and LouvorJA Flute all answer `/api/ping` the same
+ *   way at a glance (`{"app":"LouvorJA"}`), but each of the other two carries its own extra
+ *   fields the Delphi one never has (see docs/protocolo-louvorja.md): violin-app has
+ *   `authorized`/`permissions`, LouvorJA Flute has `running`/`tokenRequired` - that is the tell
+ *   for each.
  * - Nothing answering HTTP at all (connection refused, not a timeout) is the point where app-Piano
  *   becomes worth trying - its remote-control server is a bare WebSocket, not HTTP.
  */
@@ -74,8 +79,9 @@ async function probe(
   const v1 = await ping(endpoint, '/api/ping', timeoutMs, onWarning)
   if (v1?.status === 401) return { kind: 'unauthorized' }
   if (v1?.status === 200 && v1.body?.app === 'LouvorJA') {
-    const isViolin = 'authorized' in v1.body && 'permissions' in v1.body
-    return isViolin ? { kind: 'violin' } : { kind: 'louvorja-v1' }
+    if ('authorized' in v1.body && 'permissions' in v1.body) return { kind: 'violin' }
+    if ('running' in v1.body && 'tokenRequired' in v1.body) return { kind: 'flute' }
+    return { kind: 'louvorja-v1' }
   }
   if (v1) return { kind: 'incompatible' }
 
@@ -138,6 +144,8 @@ class DetectingAdapter implements LouvorJAAdapter {
         return new LouvorJAApiAdapter(this.endpoint, this.options)
       case 'violin':
         return new ViolinAppAdapter(this.endpoint, this.options)
+      case 'flute':
+        return new LouvorJAFluteAdapter(this.endpoint, this.options)
       case 'no-http':
         return new LouvorJAPianoAdapter(this.endpoint, {
           connectTimeoutMs: this.options.requestTimeoutMs,
@@ -163,7 +171,7 @@ function failing(error: ConnectionError): LouvorJAAdapter {
   }
 }
 
-/** Detects which of the three servers is listening, then hands off to its adapter. */
+/** Detects which of the four servers is listening, then hands off to its adapter. */
 export function createAdapterFactory(options: LouvorJAApiAdapterOptions = {}): AdapterFactory {
   return (endpoint) => new DetectingAdapter(endpoint, options)
 }

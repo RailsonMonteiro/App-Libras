@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import logoUrl from '@/assets/images/logo.svg'
+import logoUrl from '@/assets/images/icon_electron.webp'
 import { api } from '@/services/api'
 import { useAppStore } from '@/stores/app.store'
 import type { WindowAction } from '@/types/ipc'

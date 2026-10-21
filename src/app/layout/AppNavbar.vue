@@ -1,10 +1,19 @@
 <script setup lang="ts">
+// Icons from Flaticon's UIcons (see NOTICE.md for the required credit): "regular rounded" (a
+// semi-bold weight) for the update notice. Only this one family is loaded, not the full set.
+import '@flaticon/flaticon-uicons/css/regular/rounded.css'
+// "Projeção": one icon from Phosphor Icons' web font, "regular" weight only.
+import '@phosphor-icons/web/regular/style.css'
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { navItems } from '@/app/navigation'
 import { openSettings, settingsOpen } from '@/modules/settings/sections'
 import UpdateDialog from '@/components/UpdateDialog.vue'
 import { useUpdaterStore } from '@/stores/updater.store'
+
+/** Plain classes, not a Vuetify icon name for <v-icon>: Flaticon's "fi fi-..." or Phosphor's
+ *  "ph ph-...". */
+const isIconFont = (icon: string): boolean => icon.startsWith('fi ') || icon.startsWith('ph ')
 
 const route = useRoute()
 const updater = useUpdaterStore()
@@ -47,7 +56,8 @@ const updateDialogOpen = ref(false)
         :class="{ active: route.name === item.name }"
         :data-testid="`nav-${item.name}`"
       >
-        <v-icon class="nav-icon">{{ item.icon }}</v-icon>
+        <i v-if="isIconFont(item.icon)" class="nav-icon nav-icon-fi" :class="item.icon" />
+        <v-icon v-else class="nav-icon">{{ item.icon }}</v-icon>
         <span class="nav-text">{{ $t(item.label) }}</span>
       </router-link>
     </div>
@@ -64,7 +74,7 @@ const updateDialogOpen = ref(false)
         data-testid="nav-update"
         @click="updateDialogOpen = true"
       >
-        <v-icon class="nav-icon">mdi-cloud-download-outline</v-icon>
+        <i class="nav-icon nav-icon-fi fi fi-rr-down-to-line" />
       </button>
     </div>
 
@@ -142,6 +152,14 @@ const updateDialogOpen = ref(false)
       font-size: 20px;
       color: var(--accent-blue);
       transition: var(--transition);
+    }
+
+    /* A Flaticon or Phosphor icon is a plain <i>, not Vuetify's <v-icon>: centre it the same way
+       by hand. */
+    .nav-icon-fi {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     /* "Configurações": the gear spins counter-clockwise (0 to -180deg) opening the drawer, and

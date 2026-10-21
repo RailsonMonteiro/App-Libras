@@ -1,7 +1,10 @@
 {
   "app": {
-    "name": "LouvorJA Libras",
+    "name": "APP Libras",
     "tagline": "Interpretação em Libras com avatar 3D"
+  },
+  "home": {
+    "title": "App Libras"
   },
   "nav": {
     "home": "Página inicial",
@@ -100,6 +103,13 @@
     "connect": "Conectar",
     "disconnect": "Desconectar",
     "cancel": "Cancelar",
+    "protocols": {
+      "v2": "LouvorJA",
+      "v1": "LouvorJA",
+      "violin": "LouvorJA Violin",
+      "flute": "LouvorJA Flute",
+      "piano": "LouvorJA Piano"
+    },
     "form": {
       "title": "Conexão",
       "host": "Endereço",
@@ -121,7 +131,7 @@
       "endpoint": "Endereço: {endpoint}",
       "attempt": "Tentativa {n}",
       "retryIn": "Nova tentativa em {seconds} s",
-      "idle": "Informe o endereço do LouvorJA e conecte.",
+      "idle": "Informe o endereço e conecte.",
       "server": "Programa: LouvorJA {version} (API {protocol})"
     },
     "errors": {
@@ -131,10 +141,6 @@
       "httpStatus": "O LouvorJA respondeu com erro (HTTP {detail}).",
       "unauthorized": "O LouvorJA recusou o token. Confira o token mostrado na aba Transmitir.",
       "incompatible": "O endereço respondeu, mas não parece ser o servidor de transmissão do LouvorJA. Confira o endereço e a porta."
-    },
-    "help": {
-      "title": "Como conectar",
-      "text": "No LouvorJA, abra a aba Transmitir e clique em Iniciar Servidor. Informe aqui o endereço, a porta e o token que ele mostra. Se o LouvorJA estiver neste computador, deixe o token em branco."
     },
     "info": {
       "title": "Status da conexão",
@@ -206,8 +212,7 @@
   "projection": {
     "stage": "Como está sendo projetado",
     "controls": "Controles",
-    "avatar": "Avatar e ajustes",
-    "adjustments": "Ajustes de interpretação",
+    "avatar": "Avatares",
     "signs": "Sinais",
     "noGloss": "Nenhuma glosa para interpretar ainda. Use \"Testar avatar\" para vê-lo em ação.",
     "status": {
@@ -230,15 +235,9 @@
     "stop": "Parar",
     "repeat": "Repetir",
     "speed": "Velocidade",
-    "region": "Região dos sinais",
     "autoInterpret": "Interpretar cada slide automaticamente",
     "showSlide": "Mostrar o slide ao fundo",
     "position": "Posição do avatar",
-    "positions": {
-      "left": "Esquerda",
-      "center": "Centro",
-      "right": "Direita"
-    },
     "size": "Tamanho",
     "sync": {
       "title": "Sincronização",
@@ -275,12 +274,7 @@
       "primaryShort": "principal",
       "identify": "Identificar telas",
       "inUse": "O overlay está aqui"
-    },
-    "delay": "Atraso para começar a interpretar",
-    "advance": "Adiantamento para começar a interpretar",
-    "delayNone": "sem atraso",
-    "delayValue": "{seconds} s",
-    "delayHint": "Atrasar espera mais um pouco depois que os sinais já estão prontos. Adiantar diminui quanto o avatar espera os sinais baixarem antes de começar mesmo assim. Conta a partir do momento em que o slide entra no ar. Vale para cada slide (e para o overlay)."
+    }
   },
   "splash": {
     "pages": "Preparando as telas…",
@@ -291,8 +285,8 @@
     "purpose": "Traduzir e interpretar em Libras, em tempo real, o que é projetado no LouvorJA — gratuito e de código aberto para igrejas.",
     "version": "Versão {version}",
     "credits": {
-      "title": "Desenvolvedores",
-      "description": "Quem criou e mantém o Louvor JA e esta distribuição em Libras."
+      "title": "Desenvolvedor",
+      "description": "Quem criou e mantém o App Libras."
     }
   }
 }

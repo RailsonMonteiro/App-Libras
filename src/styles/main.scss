@@ -4,10 +4,12 @@
 // over an alternative and then extended app-wide: the two colors, a shared gradient for headings
 // (--accent-gradient/.gradient-text below), a touch more corner radius and a softer, faintly
 // tinted shadow instead of a flat black one - not just new hex values on the same shapes.
+// --accent-blue itself stopped being blue/indigo on 2026-10-21: swapped to #4ba696 (the same
+// teal as the gear icon), kept under its old name since that is the slot it still fills.
 
 :root {
-  --accent-blue: #6366f1;
-  --accent-blue-dark: #4338ca;
+  --accent-blue: #4ba696;
+  --accent-blue-dark: #357f70;
   --accent-yellow: #14b8a6;
   --accent-gradient: linear-gradient(120deg, var(--accent-blue) 0%, var(--accent-yellow) 100%);
 
@@ -19,11 +21,11 @@
 
   --sidebar-text: #333333;
   --sidebar-text-secondary: #666666;
-  --sidebar-hover: rgba(99, 102, 241, 0.08);
+  --sidebar-hover: rgba(75, 166, 150, 0.08);
   --sidebar-active: var(--accent-gradient);
 
-  --shadow: 0 2px 10px rgba(99, 102, 241, 0.12);
-  --shadow-hover: 0 6px 20px rgba(99, 102, 241, 0.18);
+  --shadow: 0 2px 10px rgba(75, 166, 150, 0.12);
+  --shadow-hover: 0 6px 20px rgba(75, 166, 150, 0.18);
   // The Página inicial logo's own soft shadow (DashboardView.vue) - off in dark mode below,
   // where the same blur reads as a glowing halo/box behind the logo instead of a shadow.
   --home-logo-glow: drop-shadow(0 10px 30px rgba(99, 102, 241, 0.35));
@@ -46,7 +48,7 @@
   --border-color: rgba(255, 255, 255, 0.12);
   --sidebar-text: #ffffff;
   --sidebar-text-secondary: #8b8e9b;
-  --sidebar-hover: rgba(99, 102, 241, 0.18);
+  --sidebar-hover: rgba(75, 166, 150, 0.18);
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.5);
   --home-logo-glow: none;
@@ -126,7 +128,7 @@ a {
   background: var(--accent-gradient);
   border-radius: var(--border-radius);
   color: white;
-  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 10px rgba(75, 166, 150, 0.3);
 }
 
 .page-container {

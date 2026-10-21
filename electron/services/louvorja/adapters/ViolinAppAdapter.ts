@@ -19,6 +19,12 @@ import { describeError } from './errorDetail'
  * Only the two events that carry text handled here: `music_presentation_snapshot` (a song's
  * current/next slide) and `bible_verse`. `slide_change`/`slides_data` (the editor, with no song
  * actually "playing") are not - a deliberate first cut, not an oversight.
+ *
+ * Checked against the real violin-app source (2026-10-21, "D:\Meus Projetos\LouvorJA Violin"):
+ * the wire format above was already right. The two things that read further than before -
+ * `snapshot.slideIndex`/`totalSlides` (`Slide.index`/`total`) and `bible_verse`'s `next_text`
+ * (`Slide.nextText`, the same field the music path's `nextSlide.lyric` already fills) - were both
+ * already being sent by the real server and simply unused until now.
  */
 
 export interface ViolinAppAdapterOptions {
@@ -32,6 +38,10 @@ const snapshotEnvelope = z.looseObject({
   active: z.boolean().optional(),
   title: z.string().optional(),
   sessionId: z.string().optional(),
+  /** 0-based, same as our own `Slide.index`/`total` - real field names confirmed by reading
+   *  violin-app's own source, not guessed. */
+  slideIndex: z.number().optional(),
+  totalSlides: z.number().optional(),
   slide: slideEnvelope.optional(),
   nextSlide: slideEnvelope.optional()
 })
@@ -39,7 +49,9 @@ const musicMessage = z.looseObject({ snapshot: snapshotEnvelope.optional() })
 const bibleMessage = z.looseObject({
   text: z.string().optional(),
   reference: z.string().optional(),
-  active: z.boolean().optional()
+  active: z.boolean().optional(),
+  /** The next verse, already sent by the server - exactly what our own `Slide.nextText` is for. */
+  next_text: z.string().optional()
 })
 const sseFrame = z.looseObject({ type: z.string(), payload: z.unknown().optional() })
 
@@ -200,7 +212,7 @@ export class ViolinAppAdapter implements LouvorJAAdapter {
     const text = stripHtml(snapshot.slide?.lyric ?? '')
     if (!text) return
     const nextText = snapshot.nextSlide ? stripHtml(snapshot.nextSlide.lyric ?? '') || null : null
-    this.publishSlide('lyrics', text, nextText, null)
+    this.publishSlide('lyrics', text, nextText, null, snapshot.slideIndex, snapshot.totalSlides)
   }
 
   private handleBible(payload: unknown): void {
@@ -214,7 +226,8 @@ export class ViolinAppAdapter implements LouvorJAAdapter {
       this.startPresentation('bible', '')
     }
     const reference = stripHtml(parsed.data.reference ?? '') || null
-    this.publishSlide('verse', stripHtml(parsed.data.text), null, reference)
+    const nextText = parsed.data.next_text ? stripHtml(parsed.data.next_text) || null : null
+    this.publishSlide('verse', stripHtml(parsed.data.text), nextText, reference)
   }
 
   private startPresentation(kind: 'song' | 'bible', title: string): void {
@@ -238,7 +251,9 @@ export class ViolinAppAdapter implements LouvorJAAdapter {
     kind: SlideKind,
     text: string,
     nextText: string | null,
-    title: string | null
+    title: string | null,
+    index?: number,
+    total?: number
   ): void {
     if (!this.presentation) return
     const key = `${this.presentation.kind}|${text}|${title ?? ''}`
@@ -249,8 +264,8 @@ export class ViolinAppAdapter implements LouvorJAAdapter {
       slide: {
         id: `${this.presentation.id}:${++this.slideCount}`,
         presentationId: this.presentation.id,
-        index: null,
-        total: null,
+        index: index ?? null,
+        total: total ?? null,
         title,
         text,
         nextText,

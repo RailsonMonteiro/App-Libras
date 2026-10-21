@@ -6,12 +6,22 @@ import { avatarBox } from './placement'
 
 export { AVATAR_ASPECT } from './placement'
 
+/** While a slider is being dragged, its live value takes over from the (debounced) setting, so
+ *  the avatar follows the drag instead of waiting for it to settle and save. */
+export interface AvatarPlacementOverrides {
+  scale?: Ref<number>
+  position?: Ref<number>
+}
+
 /**
  * Tells the avatar layer where to stand: on the bottom of `stage`, at the side, and as tall as
  * the settings say. Follows the stage when the window is resized or the page scrolls. Gives the
  * spot back when the page goes away.
  */
-export function useAvatarPlacement(stage: Ref<HTMLElement | null>): void {
+export function useAvatarPlacement(
+  stage: Ref<HTMLElement | null>,
+  overrides?: AvatarPlacementOverrides
+): void {
   const avatar = useAvatarStore()
   const { settings } = storeToRefs(useSettingsStore())
   let observer: ResizeObserver | null = null
@@ -22,7 +32,9 @@ export function useAvatarPlacement(stage: Ref<HTMLElement | null>): void {
     if (!element) return
 
     const box = element.getBoundingClientRect()
-    const place = avatarBox(box, settings.value.avatarScale, settings.value.avatarPosition)
+    const scale = overrides?.scale?.value ?? settings.value.avatarScale
+    const position = overrides?.position?.value ?? settings.value.avatarPosition
+    const place = avatarBox(box, scale, position)
 
     // Never draw outside the stage, nor over the parts of the window around a scrolling page.
     const area = (scroller ?? document.body).getBoundingClientRect()
@@ -56,9 +68,14 @@ export function useAvatarPlacement(stage: Ref<HTMLElement | null>): void {
     requestAnimationFrame(() => requestAnimationFrame(update))
   })
 
-  watch(() => [settings.value.avatarPosition, settings.value.avatarScale], update, {
-    flush: 'post'
-  })
+  watch(
+    () => [
+      overrides?.position?.value ?? settings.value.avatarPosition,
+      overrides?.scale?.value ?? settings.value.avatarScale
+    ],
+    update,
+    { flush: 'post' }
+  )
 
   onBeforeUnmount(() => {
     observer?.disconnect()

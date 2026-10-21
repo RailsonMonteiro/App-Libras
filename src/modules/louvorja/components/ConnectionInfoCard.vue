@@ -16,12 +16,17 @@ const computerLabel = computed(() => {
 const appLabel = computed(() => {
   const server = props.status.server
   if (!server) return ''
-  return t('integration.info.appValue', { version: server.version ?? '?', protocol: server.protocol })
+  return t('integration.info.appValue', {
+    version: server.version ?? '?',
+    protocol: server.protocol
+  })
 })
 
 const connectedSince = computed(() => {
   const at = props.status.connectedAt
-  return at ? new Date(at).toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' }) : ''
+  return at
+    ? new Date(at).toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
+    : ''
 })
 </script>
 

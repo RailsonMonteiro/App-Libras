@@ -48,7 +48,9 @@ describe('migrator', () => {
     expect(runMigrations(db, migrations)).toEqual([
       '0004_louvorja_real_protocol',
       '0005_external_player_connections',
-      '0006_drop_external_player_connections'
+      '0006_drop_external_player_connections',
+      '0007_connection_profiles',
+      '0008_single_connection'
     ])
 
     const columns = db
@@ -56,10 +58,11 @@ describe('migrator', () => {
       .all()
       .map((row) => row.name)
     expect(columns).toEqual(expect.arrayContaining(['host', 'port', 'token']))
+    expect(columns).not.toContain('profile')
     expect(columns).not.toContain('transport')
     expect(db.prepare('SELECT COUNT(*) AS n FROM connections').get()?.n).toBe(0)
 
-    // ...and the new tables are usable.
+    // ...and the table is usable.
     db.prepare(
       "INSERT INTO connections (host, port, token) VALUES ('10.0.0.1', 7070, 'AB12c')"
     ).run()

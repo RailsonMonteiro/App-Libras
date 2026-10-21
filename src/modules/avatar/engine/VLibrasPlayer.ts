@@ -1,4 +1,4 @@
-import type { AvatarId, AvatarSpeed } from '../types/avatar.types'
+import type { AvatarId } from '../types/avatar.types'
 
 /**
  * Talks to the official VLibras Unity player, which runs in an iframe of its own and is driven
@@ -63,7 +63,7 @@ export class VLibrasPlayer {
     this.send('setPauseState', 0)
   }
 
-  setSpeed(speed: AvatarSpeed): void {
+  setSpeed(speed: number): void {
     this.send('setSlider', speed)
   }
 

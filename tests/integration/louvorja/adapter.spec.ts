@@ -168,14 +168,26 @@ describe('LouvorJAApiAdapter (API v2)', () => {
 })
 
 describe('LouvorJAApiAdapter (token)', () => {
-  it('sends the token as a Bearer header', async () => {
+  it('sends the token only in the query string, never as an Authorization header', async () => {
     const server = await mock({ token: 'AB12c' })
     server.playSong(['UM'])
     const { adapter, events } = adapterFor(server, 'AB12c')
     await adapter.connect()
 
     expect(slides(events)).toHaveLength(1)
-    expect(server.requests.every((r) => r.authorization === 'Bearer AB12c')).toBe(true)
+    expect(server.requests.every((r) => r.query.token === 'AB12c')).toBe(true)
+    expect(server.requests.every((r) => r.authorization === null)).toBe(true)
+  })
+
+  it('connects even against a LouvorJA whose Indy server 401s any Authorization header', async () => {
+    // Most real installs still do this (see docs/protocolo-louvorja.md, "Causa confirmada do
+    // 'Token recusado'") - this is the regression test for that whole class of bug.
+    const server = await mock({ token: 'AB12c', rejectBearerHeader: true })
+    server.playSong(['UM'])
+    const { adapter, events } = adapterFor(server, 'AB12c')
+    await adapter.connect()
+
+    expect(slides(events)).toHaveLength(1)
   })
 
   it.each([

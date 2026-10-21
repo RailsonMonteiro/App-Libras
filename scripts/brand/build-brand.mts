@@ -1,10 +1,15 @@
 // Run with: npm run brand:build
-// Builds the app's logo and icons from the two artworks:
+// Builds the old combined logo (kept for AppSidebar.vue, not shown anywhere live any more) from
+// the two artworks:
 //   src/assets/images/logo-louvorja.svg   the LouvorJA mark
 //   public/assets/logos/Libras.svg        the Libras hands (a black, single-colour file)
-// and writes
-//   src/assets/images/logo.svg            the mark with the hands over its lower right corner
-//   build/icon.png, build/icon.ico, build/icon.icns   the application icon
+// and writes src/assets/images/logo.svg (the mark with the hands over its lower right corner).
+//
+// The application icon (build/icon.png, build/icon.ico, build/icon.icns) and the tray icon
+// (src/assets/images/icon.png) come from the real logo instead - the hands alone, the app's main
+// mark since 2026 - not from the combined artwork above:
+//   src/assets/images/icon_electron.webp   the application icon's source
+//   src/assets/images/icon.webp            the tray icon's source (a smaller copy)
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -48,8 +53,8 @@ console.log(`logo.svg ${LOGO.width}x${LOGO.height}`)
 
 const SIZES = [16, 24, 32, 48, 64, 128, 256, 512, 1024]
 
-/** Draws the logo, centred with a margin, on a transparent square of each size (in Chromium). */
-async function render(): Promise<Map<number, Buffer>> {
+/** Draws `artwork` (a .webp image), centred with a margin, on a transparent square of each size. */
+async function render(artwork: Buffer, sizes: number[]): Promise<Map<number, Buffer>> {
   const scratch = mkdtempSync(join(tmpdir(), 'brand-'))
   const main = join(scratch, 'main.cjs')
   writeFileSync(main, "require('electron').app.whenReady().then(() => {})")
@@ -58,9 +63,9 @@ async function render(): Promise<Map<number, Buffer>> {
   delete env.ELECTRON_RUN_AS_NODE
   const app = await electron.launch({ args: [main], env })
   try {
-    const dataUrl = `data:image/svg+xml;base64,${Buffer.from(logo).toString('base64')}`
+    const dataUrl = `data:image/webp;base64,${artwork.toString('base64')}`
     const result = await app.evaluate(
-      async ({ BrowserWindow }, { url, sizes, logoSize }) => {
+      async ({ BrowserWindow }, { url, sizes }) => {
         const win = new BrowserWindow({ show: false })
         await win.loadURL('data:text/html,<body></body>')
         const script = `(async () => {
@@ -74,9 +79,12 @@ async function render(): Promise<Map<number, Buffer>> {
             const ctx = canvas.getContext('2d')
             ctx.imageSmoothingQuality = 'high'
             const margin = size * 0.06
-            const fit = Math.min((size - 2 * margin) / ${logoSize.width}, (size - 2 * margin) / ${logoSize.height})
-            const w = ${logoSize.width} * fit
-            const h = ${logoSize.height} * fit
+            const fit = Math.min(
+              (size - 2 * margin) / image.naturalWidth,
+              (size - 2 * margin) / image.naturalHeight
+            )
+            const w = image.naturalWidth * fit
+            const h = image.naturalHeight * fit
             ctx.drawImage(image, (size - w) / 2, (size - h) / 2, w, h)
             out[size] = canvas.toDataURL('image/png').split(',')[1]
           }
@@ -86,7 +94,7 @@ async function render(): Promise<Map<number, Buffer>> {
         win.destroy()
         return pngs
       },
-      { url: dataUrl, sizes: SIZES, logoSize: LOGO }
+      { url: dataUrl, sizes }
     )
     return new Map(
       Object.entries(result).map(([size, b64]) => [Number(size), Buffer.from(b64, 'base64')])
@@ -131,7 +139,8 @@ function icns(images: Array<[string, Buffer]>): Buffer {
   return Buffer.concat([head, ...chunks])
 }
 
-const png = await render()
+const iconArtwork = readFileSync(resolve(root, 'src/assets/images/icon_electron.webp'))
+const png = await render(iconArtwork, SIZES)
 const get = (size: number): Buffer => {
   const image = png.get(size)
   if (!image) throw new Error(`No ${size}px image`)
@@ -157,3 +166,13 @@ writeFileSync(
   ])
 )
 console.log('build/icon.png, build/icon.ico, build/icon.icns')
+
+// --- 3. The tray icon --------------------------------------------------------------------------
+// Electron's nativeImage can't decode .webp (unlike Chromium's own <img>/<canvas>, used above,
+// which is fine with it) - a Tray built straight from a .webp file shows no icon at all. This PNG
+// copy is what createTray.ts actually loads.
+
+const trayArtwork = readFileSync(resolve(root, 'src/assets/images/icon.webp'))
+const trayPng = await render(trayArtwork, [256])
+writeFileSync(resolve(root, 'src/assets/images/icon.png'), trayPng.get(256)!)
+console.log('src/assets/images/icon.png')

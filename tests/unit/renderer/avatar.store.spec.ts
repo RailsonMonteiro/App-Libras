@@ -304,7 +304,9 @@ describe('avatar store, synchronization with the presentation', () => {
     const frame = fakeFrame()
     ctx.store.attach(frame.frame)
     frame.emit('on_load_player')
-    ctx.settings.settings = { ...DEFAULT_SETTINGS, autoInterpret: true }
+    // interpretDelay: 0, not DEFAULT_SETTINGS' fastest-advance value - these tests are about the
+    // sign-waiting mechanism itself, not the "no delay, no advance" case it defaults to now.
+    ctx.settings.settings = { ...DEFAULT_SETTINGS, autoInterpret: true, interpretDelay: 0 }
     await nextTick() // the settings reach the player
     frame.sent.length = 0
     return { ...ctx, louvorja, ...frame }

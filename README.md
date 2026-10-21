@@ -1,4 +1,4 @@
-# LouvorJA Libras
+# APP Libras
 
 Aplicativo desktop, open source e gratuito para igrejas, que se integra ao LouvorJA, recebe os
 slides em tempo real e apresenta um avatar 3D fazendo a interpretação em Libras, inclusive como

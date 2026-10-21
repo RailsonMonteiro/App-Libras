@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ToggleRow from '@/components/ToggleRow.vue'
 import SettingsSection from '@/modules/settings/SettingsSection.vue'
 import { useSettingsStore } from '@/stores/settings.store'
 import { useOverlayStore } from '../stores/overlay.store'
@@ -118,33 +119,19 @@ const singleScreen = computed(() => overlay.displays.length <= 1)
       :text="$t('projection.overlay.singleScreen')"
     />
 
-    <div class="option-row">
-      <span class="option-label">{{ $t('projection.overlay.onlyDuringPresentation') }}</span>
-      <v-switch
-        :model-value="settings.overlayOnlyDuringPresentation"
-        color="primary"
-        inset
-        hide-details
-        density="compact"
-        :aria-label="$t('projection.overlay.onlyDuringPresentation')"
-        data-testid="overlay-only-during-presentation"
-        @update:model-value="settingsStore.update('overlayOnlyDuringPresentation', Boolean($event))"
-      />
-    </div>
+    <ToggleRow
+      :model-value="settings.overlayOnlyDuringPresentation"
+      :label="$t('projection.overlay.onlyDuringPresentation')"
+      data-testid="overlay-only-during-presentation"
+      @update:model-value="settingsStore.update('overlayOnlyDuringPresentation', $event)"
+    />
 
-    <div class="option-row">
-      <span class="option-label">{{ $t('projection.overlay.autoOpen') }}</span>
-      <v-switch
-        :model-value="settings.overlayAutoOpen"
-        color="primary"
-        inset
-        hide-details
-        density="compact"
-        :aria-label="$t('projection.overlay.autoOpen')"
-        data-testid="overlay-auto-open"
-        @update:model-value="settingsStore.update('overlayAutoOpen', Boolean($event))"
-      />
-    </div>
+    <ToggleRow
+      :model-value="settings.overlayAutoOpen"
+      :label="$t('projection.overlay.autoOpen')"
+      data-testid="overlay-auto-open"
+      @update:model-value="settingsStore.update('overlayAutoOpen', $event)"
+    />
 
     <v-btn
       v-if="!overlay.open"
@@ -224,7 +211,7 @@ const singleScreen = computed(() => overlay.displays.length <= 1)
 }
 
 .screen-tile:hover {
-  border-color: rgba(99, 102, 241, 0.55);
+  border-color: rgba(75, 166, 150, 0.55);
 }
 
 .screen-tile:focus-visible {
@@ -235,7 +222,7 @@ const singleScreen = computed(() => overlay.displays.length <= 1)
 .screen-tile.selected {
   border-color: var(--accent-blue);
   background: var(--sidebar-hover);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 0 3px rgba(75, 166, 150, 0.15);
 }
 
 .monitor {
@@ -248,7 +235,7 @@ const singleScreen = computed(() => overlay.displays.length <= 1)
   margin-bottom: 10px;
   border: 3px solid var(--sidebar-text-secondary);
   border-radius: 6px;
-  background: rgba(99, 102, 241, 0.08);
+  background: rgba(75, 166, 150, 0.08);
   color: var(--sidebar-text-secondary);
 }
 
@@ -304,19 +291,6 @@ const singleScreen = computed(() => overlay.displays.length <= 1)
   border-radius: 50%;
   background: rgb(var(--v-theme-success));
   box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.25);
-}
-
-/* One option per line: what it does on the left, its switch on the right. No box around it. */
-.option-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 0 2px;
-}
-
-.option-label {
-  font-size: 14px;
 }
 
 /* A regular button, at the left, not a bar across the whole panel. */

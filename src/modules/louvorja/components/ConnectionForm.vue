@@ -134,7 +134,7 @@ async function submit(): Promise<void> {
       data-testid="connect-button"
     >
       {{
-        store.status.state === 'connected'
+        store.isConnected
           ? $t('integration.disconnect')
           : store.isActive
             ? $t('integration.cancel')
@@ -194,7 +194,7 @@ async function submit(): Promise<void> {
 .connection-form :deep(.v-field--focused) {
   border-color: var(--accent-blue);
   background: transparent;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+  box-shadow: 0 0 0 3px rgba(75, 166, 150, 0.18);
 }
 
 .connection-form :deep(.v-field--error) {

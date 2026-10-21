@@ -10,13 +10,12 @@ export const AVATAR_NAMES: Record<AvatarId, string> = {
   hosana: 'Hosana'
 }
 
-/** Playback speeds offered by the official player. */
-export const AVATAR_SPEEDS = [0.5, 1, 1.5, 2, 2.5] as const
-export type AvatarSpeed = (typeof AVATAR_SPEEDS)[number]
+/** Limits of the speed slider (half-steps, the increments the player's own picker used to offer). */
+export const AVATAR_SPEED_RANGE = { min: 0.5, max: 3, step: 0.5 } as const
 
-/** Where the avatar stands on the stage (it is always at the bottom). */
-export const AVATAR_POSITIONS = ['left', 'center', 'right'] as const
-export type AvatarPosition = (typeof AVATAR_POSITIONS)[number]
+/** Where the avatar stands horizontally on the stage (always at the bottom): a slider from the
+ *  left edge (0) to the right edge (100), 50 being dead centre. */
+export const AVATAR_POSITION_RANGE = { min: 0, max: 100, step: 1 } as const
 
 /** Regional sign variants: "BR" is the national standard, the rest are Brazilian states. */
 export const REGION_CODES = [

@@ -67,7 +67,7 @@ function choose(avatar: AvatarId): void {
   height: 88px;
   border-radius: 50%;
   /* The avatar's own background is transparent: a soft tint behind it fills the circle. */
-  background: linear-gradient(160deg, rgba(99, 102, 241, 0.22) 0%, rgba(20, 184, 166, 0.22) 100%);
+  background: linear-gradient(160deg, rgba(75, 166, 150, 0.22) 0%, rgba(20, 184, 166, 0.22) 100%);
   box-shadow: 0 0 0 2px transparent;
   transition: var(--transition);
 }
@@ -82,7 +82,7 @@ function choose(avatar: AvatarId): void {
 
 .avatar-option:hover .portrait,
 .avatar-option:focus-visible .portrait {
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 0 2px rgba(75, 166, 150, 0.5);
 }
 
 .avatar-option.selected .portrait {

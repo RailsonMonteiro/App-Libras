@@ -45,7 +45,7 @@ function place(): void {
 
 onMounted(() => {
   // What the system shows for this window (the task list, capture programs such as OBS).
-  document.title = 'LouvorJA Libras - Overlay'
+  document.title = 'APP Libras - Overlay'
   place()
   window.addEventListener('resize', place)
   // The projection page can test the avatar: what it plays there plays here too.

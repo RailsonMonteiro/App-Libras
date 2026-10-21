@@ -86,7 +86,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: T] }>()
   font-weight: 600;
   box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.18),
-    0 0 0 1px rgba(99, 102, 241, 0.35);
+    0 0 0 1px rgba(75, 166, 150, 0.35);
 }
 
 .segmented.disabled .segment {

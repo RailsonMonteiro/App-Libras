@@ -139,7 +139,7 @@ export class OverlayController {
       skipTaskbar: true,
       // Never takes the keyboard from the presentation.
       focusable: false,
-      title: 'LouvorJA Libras - Overlay',
+      title: 'APP Libras - Overlay',
       webPreferences: {
         preload: join(__dirname, '../preload/index.js'),
         contextIsolation: true,

@@ -39,7 +39,7 @@ if (!app.requestSingleInstanceLock()) {
     const settings = new SettingsService(db)
 
     logs.prune()
-    logs.info('app', `Started LouvorJA Libras ${app.getVersion()}`)
+    logs.info('app', `Started APP Libras ${app.getVersion()}`)
     // One line of OS/locale context per launch - the "Token recusado"/"não conecta" reports
     // this session has chased so far all trace back to specific Windows editions and regional
     // settings (see docs/protocolo-louvorja.md); without this, a report has no way to confirm

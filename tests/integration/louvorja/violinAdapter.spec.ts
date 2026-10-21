@@ -88,6 +88,8 @@ describe('ViolinAppAdapter', () => {
         active: true,
         sessionId: 'sess-1',
         title: 'HINO',
+        slideIndex: 1,
+        totalSlides: 4,
         slide: { lyric: 'PRIMEIRA LINHA<br>SEGUNDA LINHA' },
         nextSlide: { lyric: 'CORO' }
       }
@@ -100,7 +102,13 @@ describe('ViolinAppAdapter', () => {
     })
     expect(events[1]).toMatchObject({
       type: 'slide',
-      slide: { kind: 'lyrics', text: 'PRIMEIRA LINHA\nSEGUNDA LINHA', nextText: 'CORO' }
+      slide: {
+        kind: 'lyrics',
+        text: 'PRIMEIRA LINHA\nSEGUNDA LINHA',
+        nextText: 'CORO',
+        index: 1,
+        total: 4
+      }
     })
   })
 
@@ -171,11 +179,21 @@ describe('ViolinAppAdapter', () => {
     const { adapter, events } = adapterFor(server)
     await adapter.connect()
 
-    server.send('bible_verse', { text: 'No princípio...', reference: 'Gênesis 1:1', active: true })
+    server.send('bible_verse', {
+      text: 'No princípio...',
+      reference: 'Gênesis 1:1',
+      active: true,
+      next_text: 'E a terra...'
+    })
     await vi.waitFor(() => expect(events).toHaveLength(2))
     expect(events[1]).toMatchObject({
       type: 'slide',
-      slide: { kind: 'verse', text: 'No princípio...', title: 'Gênesis 1:1' }
+      slide: {
+        kind: 'verse',
+        text: 'No princípio...',
+        title: 'Gênesis 1:1',
+        nextText: 'E a terra...'
+      }
     })
   })
 

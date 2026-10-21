@@ -15,7 +15,7 @@ public class Z {
       if (!IsWindowVisible(h)) return true;
       var sb = new StringBuilder(256); GetWindowText(h, sb, 256);
       var t = sb.ToString();
-      if (t.Contains("LouvorJA Libras") || t.Contains("COMPETITOR")) {
+      if (t.Contains("APP Libras") || t.Contains("COMPETITOR")) {
         bool top = (GetWindowLong(h, -20) & 0x8) != 0;
         list.Add(t + (top ? " [topmost]" : ""));
       }

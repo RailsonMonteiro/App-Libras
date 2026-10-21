@@ -94,7 +94,7 @@ defineProps<{
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(75, 166, 150, 0.1);
   color: var(--accent-blue);
   text-decoration: none;
   transition:
@@ -103,7 +103,7 @@ defineProps<{
 }
 
 .developer-link:hover {
-  background: rgba(99, 102, 241, 0.18);
+  background: rgba(75, 166, 150, 0.18);
   transform: translateY(-1px);
 }
 </style>

@@ -13,6 +13,14 @@ export interface MockOptions {
   token?: string
   /** `v1` imitates an old LouvorJA that only has the original API. */
   dialect?: 'v2' | 'v1'
+  /**
+   * Imitates the Indy HTTP server builds most real LouvorJA installs still run (see
+   * docs/protocolo-louvorja.md, "Causa confirmada do 'Token recusado'"): any `Authorization`
+   * header at all - even a correct `Bearer <token>` - is 401ed by `OnParseAuthentication`
+   * *before* the request reaches LouvorJA's own route handler. Our adapters must never send
+   * that header; this option is how the tests prove it.
+   */
+  rejectBearerHeader?: boolean
 }
 
 export interface MockRequest {
@@ -152,6 +160,12 @@ export async function startMockServer(options: MockOptions = {}): Promise<MockSe
     requests.push({ method: request.method ?? 'GET', path: url.pathname, query, authorization })
 
     if (url.pathname.startsWith('/api')) {
+      // Indy itself rejects the header, before LouvorJA's own route handler ever sees the
+      // request or the token in it - a 401 with no LouvorJA JSON body at all.
+      if (options.rejectBearerHeader && authorization !== null) {
+        response.writeHead(401, { 'content-type': 'text/plain' })
+        return response.end('Unsupported authorization scheme')
+      }
       if (options.token !== undefined) {
         // v1 only reads ?token=; v2 also accepts "Authorization: Bearer".
         const viaHeader = authorization === `Bearer ${options.token}`

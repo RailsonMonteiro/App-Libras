@@ -47,7 +47,7 @@ describe('SettingsService avatar settings', () => {
       avatarSpeed: 1,
       signRegion: 'BR',
       autoInterpret: true,
-      avatarPosition: 'right',
+      avatarPosition: 100,
       avatarScale: 90,
       stageShowSlide: true
     })
@@ -57,18 +57,23 @@ describe('SettingsService avatar settings', () => {
     const service = make()
     expect(service.set('avatar', 'hosana').avatar).toBe('hosana')
     expect(service.set('avatarSpeed', 2.5).avatarSpeed).toBe(2.5)
+    expect(service.set('avatarSpeed', 3).avatarSpeed).toBe(3)
     expect(service.set('signRegion', 'SP').signRegion).toBe('SP')
-    expect(service.set('avatarPosition', 'left').avatarPosition).toBe('left')
-    expect(service.set('avatarScale', 30).avatarScale).toBe(30)
+    expect(service.set('avatarPosition', 0).avatarPosition).toBe(0)
+    expect(service.set('avatarPosition', 50).avatarPosition).toBe(50)
+    expect(service.set('avatarScale', 0).avatarScale).toBe(0)
   })
 
   it('rejects values outside what the player offers', () => {
     const service = make()
     expect(() => service.set('avatar', 'robo' as never)).toThrow()
-    expect(() => service.set('avatarSpeed', 3 as never)).toThrow()
+    expect(() => service.set('avatarSpeed', 3.5 as never)).toThrow()
+    expect(() => service.set('avatarSpeed', 2.2 as never)).toThrow()
     expect(() => service.set('signRegion', 'XX' as never)).toThrow()
-    expect(() => service.set('avatarPosition', 'top' as never)).toThrow()
-    expect(() => service.set('avatarScale', 10)).toThrow()
+    expect(() => service.set('avatarPosition', -1)).toThrow()
+    expect(() => service.set('avatarPosition', 101)).toThrow()
+    expect(() => service.set('avatarPosition', 50.5)).toThrow()
+    expect(() => service.set('avatarScale', -1)).toThrow()
     expect(() => service.set('avatarScale', 101)).toThrow()
   })
 
@@ -100,9 +105,9 @@ describe('LogService', () => {
 describe('SettingsService interpretation delay', () => {
   const make = () => new SettingsService(openDatabase(':memory:'))
 
-  it('starts without delay and stores whole and half seconds, both to delay and to advance', () => {
+  it('starts at the fastest advance and stores whole and half seconds, both to delay and to advance', () => {
     const service = make()
-    expect(service.getAll().interpretDelay).toBe(0)
+    expect(service.getAll().interpretDelay).toBe(-2.5)
     expect(service.set('interpretDelay', 3).interpretDelay).toBe(3)
     expect(service.set('interpretDelay', 2.5).interpretDelay).toBe(2.5)
     expect(service.set('interpretDelay', 15).interpretDelay).toBe(15)

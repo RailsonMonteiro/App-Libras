@@ -1,7 +1,10 @@
 <script setup lang="ts">
+// "Desenvolvedor" uses a Phosphor Icons glyph (MIT, see NOTICE.md), "regular" family - the same
+// one already loaded elsewhere in the app.
+import '@phosphor-icons/web/regular/style.css'
 import DeveloperCredit, { type DeveloperLink } from '@/modules/about/components/DeveloperCredit.vue'
 import SettingsSection from '@/modules/settings/SettingsSection.vue'
-import logoUrl from '@/assets/images/logo.svg'
+import logoUrl from '@/assets/images/icon_electron.webp'
 import { useAppStore } from '@/stores/app.store'
 
 const app = useAppStore()
@@ -15,30 +18,15 @@ interface Developer {
   links: DeveloperLink[]
 }
 
-/**
- * Bios, not UI chrome: kept in Portuguese regardless of the app's own language, the same way a
- * name would not be translated (source: developers.json in the original Louvor JA project).
- */
+/** Bios, not UI chrome: kept in Portuguese regardless of the app's own language, the same way a
+ *  name would not be translated. */
 const DEVELOPERS: Developer[] = [
-  {
-    id: 'mayco',
-    name: 'Mayco Rolbuche',
-    role: 'Idealizador e Desenvolvedor Principal',
-    avatarUrl: 'https://github.com/maycorolbuche.png',
-    description: 'Criador original do projeto Louvor JA.',
-    links: [
-      { icon: 'mdi-github', url: 'https://github.com/maycorolbuche', label: 'GitHub' },
-      { icon: 'mdi-web', url: 'https://maycorolbuche.com.br', label: 'Site' },
-      { icon: 'mdi-facebook', url: 'https://www.facebook.com/maycorolbuche', label: 'Facebook' },
-      { icon: 'mdi-email', url: 'mailto:mayco.rolbuche@yahoo.com.br', label: 'E-mail' }
-    ]
-  },
   {
     id: 'railson',
     name: 'Railson Monteiro',
-    role: 'Desenvolvedor Principal - LouvorJA Libras',
+    role: 'Desenvolvedor e Criador do App',
     avatarUrl: 'https://github.com/railsonmonteiro.png',
-    description: 'Responsável pelo desenvolvimento desta distribuição em Libras do Louvor JA.',
+    description: 'Responsável pela criação e desenvolvimento do App Libras.',
     links: [
       { icon: 'mdi-github', url: 'https://github.com/railsonmonteiro', label: 'GitHub' },
       { icon: 'mdi-email', url: 'mailto:railsonmonteiro.tec@gmail.com', label: 'E-mail' }
@@ -55,7 +43,7 @@ const DEVELOPERS: Developer[] = [
         <div class="about-identity">
           <img :src="logoUrl" alt="" class="about-logo" />
           <div class="about-name gradient-text" data-testid="about-name">
-            {{ $t('app.name') }}
+            {{ $t('home.title') }}
           </div>
         </div>
         <p class="about-purpose" data-testid="about-purpose">
@@ -68,7 +56,7 @@ const DEVELOPERS: Developer[] = [
     </v-card>
 
     <SettingsSection
-      icon="mdi-account-group"
+      icon="ph ph-code"
       :title="$t('about.credits.title')"
       :description="$t('about.credits.description')"
     >
@@ -117,6 +105,18 @@ const DEVELOPERS: Developer[] = [
 .about-logo {
   height: 96px;
   filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.18));
+  /* TEMPORARY - just a test, remove if it doesn't stick (same wobble as the home page/splash). */
+  animation: about-logo-wobble 2s ease-in-out infinite;
+}
+
+@keyframes about-logo-wobble {
+  0%,
+  100% {
+    transform: rotate(-6deg);
+  }
+  50% {
+    transform: rotate(6deg);
+  }
 }
 
 /* Same gradient treatment as every page's own title (.gradient-text, main.scss) - the app's own

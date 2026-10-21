@@ -37,6 +37,28 @@ function startViolinLikeServer(): Promise<{ host: string; port: number }> {
   })
 }
 
+/** A bare HTTP server answering `/api/ping` the way LouvorJA Flute does (no `/api/v2/*` either,
+ *  but `running`/`tokenRequired` instead of violin-app's `authorized`/`permissions`). */
+function startFluteLikeServer(): Promise<{ host: string; port: number }> {
+  return new Promise((resolve) => {
+    const server = createServer((req, res) => {
+      if (req.url?.startsWith('/api/ping')) {
+        res.writeHead(200, { 'content-type': 'application/json' })
+        res.end(
+          JSON.stringify({ status: 'ok', app: 'LouvorJA', running: true, tokenRequired: false })
+        )
+        return
+      }
+      res.writeHead(404).end()
+    })
+    rawServers.push(server)
+    server.listen(0, '127.0.0.1', () => {
+      const { port } = server.address() as AddressInfo
+      resolve({ host: '127.0.0.1', port })
+    })
+  })
+}
+
 /** Nothing answers here at all - the port is open but immediately hangs up (not a timeout). */
 function startClosingServer(): Promise<{ host: string; port: number }> {
   return new Promise((resolve) => {
@@ -86,6 +108,15 @@ describe('createAdapterFactory (protocol detection)', () => {
     // to fail past detection, but the important thing here is which adapter it picked.
     await adapter.connect().catch(() => null)
     expect(adapter.describe?.()?.protocol).toBe('violin')
+  })
+
+  it('tells LouvorJA Flute apart from the real LouvorJA too, by its own extra ping fields', async () => {
+    const server = await startFluteLikeServer()
+    const adapter = adapterFor(server)
+    // /api/status never answers in this test (no route for it) - connect() is expected to fail
+    // past detection, but the important thing here is which adapter it picked.
+    await adapter.connect().catch(() => null)
+    expect(adapter.describe?.()?.protocol).toBe('flute')
   })
 
   it('falls back to app-Piano only once nothing answers HTTP at all', async () => {

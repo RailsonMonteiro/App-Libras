@@ -2,10 +2,9 @@ import type { DatabaseSync } from 'node:sqlite'
 import { z } from 'zod'
 import {
   AVATARS,
-  AVATAR_POSITIONS,
-  AVATAR_SPEEDS,
-  REGION_CODES,
-  type AvatarSpeed
+  AVATAR_POSITION_RANGE,
+  AVATAR_SPEED_RANGE,
+  REGION_CODES
 } from '../../src/modules/avatar/types/avatar.types'
 import { isHttpUrl } from '../../src/modules/libras/types/libras.types'
 import {
@@ -34,7 +33,10 @@ export const settingSchemas = {
   avatar: z.enum(AVATARS),
   avatarSpeed: z
     .number()
-    .refine((value): value is AvatarSpeed => AVATAR_SPEEDS.includes(value as AvatarSpeed)),
+    .min(AVATAR_SPEED_RANGE.min)
+    .max(AVATAR_SPEED_RANGE.max)
+    // Half-steps are the finest the settings page offers.
+    .refine((value) => Number.isInteger(value * 2), 'Must be a multiple of 0.5'),
   signRegion: z.enum(REGION_CODES),
   autoInterpret: z.boolean(),
   interpretDelay: z
@@ -43,7 +45,11 @@ export const settingSchemas = {
     .max(INTERPRET_DELAY_RANGE.max)
     // Half seconds are the finest the settings page offers.
     .refine((value) => Number.isInteger(value * 2), 'Must be a multiple of 0.5'),
-  avatarPosition: z.enum(AVATAR_POSITIONS),
+  avatarPosition: z
+    .number()
+    .int()
+    .min(AVATAR_POSITION_RANGE.min)
+    .max(AVATAR_POSITION_RANGE.max),
   avatarScale: z.number().int().min(AVATAR_SCALE_RANGE.min).max(AVATAR_SCALE_RANGE.max),
   stageShowSlide: z.boolean(),
   dictionaryUrl: baseUrl,

@@ -16,7 +16,7 @@ export const SETTINGS_SECTION_ICONS: Record<SettingsSection, string> = {
   connection: 'mdi-link-variant',
   translator: 'mdi-hand-wave',
   overlay: 'mdi-layers-outline',
-  updates: 'mdi-cloud-refresh-outline',
+  updates: 'fi fi-rr-down-to-line',
   about: 'mdi-information-outline'
 }
 

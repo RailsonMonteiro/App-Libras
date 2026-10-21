@@ -201,7 +201,7 @@ test('stays in front of another window that is always on top, like the presentat
   await expect
     .poll(() => {
       const order = windowsFrontToBack()
-      const overlay = order.findIndex((title) => title.startsWith('LouvorJA Libras - Overlay'))
+      const overlay = order.findIndex((title) => title.startsWith('APP Libras - Overlay'))
       const presentation = order.findIndex((title) => title.startsWith('COMPETITOR'))
       return overlay >= 0 && presentation >= 0 && overlay < presentation
     })

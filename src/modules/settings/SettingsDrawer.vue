@@ -1,8 +1,12 @@
 <script setup lang="ts">
+// Icons from Flaticon's UIcons (see NOTICE.md for the required credit): "regular rounded" (a
+// semi-bold weight) for the "Atualizações" tab. Only this one family is loaded, not the full set.
+import '@flaticon/flaticon-uicons/css/regular/rounded.css'
 import { storeToRefs } from 'pinia'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AboutView from '@/modules/about/AboutView.vue'
+import ToggleRow from '@/components/ToggleRow.vue'
 import { useAppStore } from '@/stores/app.store'
 import { useAvatarStore } from '@/modules/avatar/stores/avatar.store'
 import LouvorJAView from '@/modules/louvorja/LouvorJAView.vue'
@@ -24,6 +28,9 @@ import {
   type SettingsSection as SettingsSectionName
 } from './sections'
 import type { AppSettings } from '@/types/settings'
+
+/** Flaticon icons ("fi fi-...") are plain classes, not a Vuetify icon name for <v-icon>. */
+const isFlaticon = (icon: string): boolean => icon.startsWith('fi ')
 
 /** -1 for "no tab yet" (null), so the first real pick always slides in from the right. */
 function sectionIndex(section: SettingsSectionName | null): number {
@@ -135,7 +142,12 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
           :data-testid="`settings-tab-${name}`"
           @click="toggleSection(name)"
         >
-          <v-icon size="20">{{ SETTINGS_SECTION_ICONS[name] }}</v-icon>
+          <i
+            v-if="isFlaticon(SETTINGS_SECTION_ICONS[name])"
+            class="settings-tab-icon-fi"
+            :class="SETTINGS_SECTION_ICONS[name]"
+          />
+          <v-icon v-else size="20">{{ SETTINGS_SECTION_ICONS[name] }}</v-icon>
           <span>{{ $t(`settings.tabs.${name}`) }}</span>
         </button>
 
@@ -174,25 +186,21 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
                   @update:model-value="change('theme', $event)"
                 />
 
-                <v-switch
-                  :model-value="settings.autoConnect"
-                  :label="$t('settings.autoConnect')"
-                  color="primary"
-                  hide-details
-                  data-testid="setting-auto-connect"
-                  @update:model-value="change('autoConnect', Boolean($event))"
-                />
-
-                <v-switch
-                  :model-value="settings.runInBackground"
-                  :label="$t('settings.runInBackground')"
-                  :hint="$t('settings.runInBackgroundHint')"
-                  persistent-hint
-                  color="primary"
-                  class="mt-4"
-                  data-testid="setting-run-in-background"
-                  @update:model-value="change('runInBackground', Boolean($event))"
-                />
+                <div class="d-flex flex-column ga-2">
+                  <ToggleRow
+                    :model-value="settings.autoConnect"
+                    :label="$t('settings.autoConnect')"
+                    data-testid="setting-auto-connect"
+                    @update:model-value="change('autoConnect', $event)"
+                  />
+                  <ToggleRow
+                    :model-value="settings.runInBackground"
+                    :label="$t('settings.runInBackground')"
+                    :hint="$t('settings.runInBackgroundHint')"
+                    data-testid="setting-run-in-background"
+                    @update:model-value="change('runInBackground', $event)"
+                  />
+                </div>
               </v-card-text>
             </v-card>
           </div>
@@ -205,14 +213,11 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
               :title="$t('settings.libras.sections.online.title')"
               :description="$t('settings.libras.onlineHint')"
             >
-              <v-switch
+              <ToggleRow
                 :model-value="settings.onlineTranslator"
                 :label="$t('settings.libras.online')"
-                color="primary"
-                hide-details
-                density="comfortable"
                 data-testid="setting-online-translator"
-                @update:model-value="change('onlineTranslator', Boolean($event))"
+                @update:model-value="change('onlineTranslator', $event)"
               />
 
               <UrlField
@@ -301,18 +306,18 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
 
           <div v-else-if="openSection === 'updates'" class="d-flex flex-column ga-5">
             <SettingsSection
-              icon="mdi-cloud-refresh-outline"
+              icon="fi fi-rr-down-to-line"
               :title="$t('settings.updates.title')"
               :description="$t('settings.updates.description')"
             >
               <v-btn
                 color="primary"
                 variant="tonal"
-                prepend-icon="mdi-cloud-refresh-outline"
                 :loading="updater.checking"
                 data-testid="settings-check-updates"
                 @click="updater.check()"
               >
+                <i class="btn-icon-fi fi fi-rr-down-to-line" />
                 {{ $t('settings.updates.check') }}
               </v-btn>
 
@@ -385,6 +390,13 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
 </template>
 
 <style scoped>
+/* v-btn's own "prepend-icon" prop only takes a Vuetify icon name, not a Flaticon class - the
+   same spacing by hand (v-btn's default icon-to-text gap), on a plain <i>. */
+.btn-icon-fi {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
 .settings-backdrop {
   position: fixed;
   inset: 0;
@@ -461,6 +473,15 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
   text-transform: uppercase;
   cursor: pointer;
   transition: var(--transition);
+}
+
+/* The Flaticon icon is a plain <i>, not Vuetify's <v-icon>: match its size and centre it the
+   same way by hand. */
+.settings-tab-icon-fi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
 }
 
 /* Pinned to the bottom of the tab list by the column's own flex (not a fixed/absolute position),

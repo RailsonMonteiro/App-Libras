@@ -277,11 +277,13 @@ export class LouvorJAApiAdapter implements LouvorJAAdapter {
     for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value)
 
     const headers: Record<string, string> = { accept: 'application/json' }
-    if (token) {
-      // The original API only reads the token from the URL; v2 prefers the header.
-      if (this.dialect === 'v2') headers.authorization = `Bearer ${token}`
-      else url.searchParams.set('token', token)
-    }
+    // Query string only, v1 and v2 alike: Indy's own `OnParseAuthentication` 401s any
+    // `Authorization` scheme it doesn't itself recognize *before* the request reaches LouvorJA's
+    // route handler at all, on builds that predate that behaviour being fixed (the common real-
+    // world case - see docs/protocolo-louvorja.md, "Causa confirmada do 'Token recusado'"). v2's
+    // own `v2TokenValido` already falls back to the query string when there's no `Bearer` header,
+    // so this costs nothing against a fixed build either.
+    if (token) url.searchParams.set('token', token)
 
     let response: Response
     try {

@@ -1,7 +1,10 @@
 {
   "app": {
-    "name": "LouvorJA Libras",
+    "name": "APP Libras",
     "tagline": "Libras interpretation with a 3D avatar"
+  },
+  "home": {
+    "title": "App Libras"
   },
   "nav": {
     "home": "Home",
@@ -100,6 +103,13 @@
     "connect": "Connect",
     "disconnect": "Disconnect",
     "cancel": "Cancel",
+    "protocols": {
+      "v2": "LouvorJA",
+      "v1": "LouvorJA",
+      "violin": "LouvorJA Violin",
+      "flute": "LouvorJA Flute",
+      "piano": "LouvorJA Piano"
+    },
     "form": {
       "title": "Connection",
       "host": "Address",
@@ -121,7 +131,7 @@
       "endpoint": "Address: {endpoint}",
       "attempt": "Attempt {n}",
       "retryIn": "Retrying in {seconds} s",
-      "idle": "Enter the LouvorJA address and connect.",
+      "idle": "Enter the address and connect.",
       "server": "Program: LouvorJA {version} (API {protocol})"
     },
     "errors": {
@@ -131,10 +141,6 @@
       "httpStatus": "LouvorJA answered with an error (HTTP {detail}).",
       "unauthorized": "LouvorJA refused the token. Check the token shown in the Transmitir tab.",
       "incompatible": "The address answered, but it does not look like the LouvorJA transmission server. Check the address and port."
-    },
-    "help": {
-      "title": "How to connect",
-      "text": "In LouvorJA, open the Transmitir tab and click Iniciar Servidor. Enter here the address, the port and the token it shows. If LouvorJA is on this computer, leave the token empty."
     },
     "info": {
       "title": "Connection status",
@@ -206,8 +212,7 @@
   "projection": {
     "stage": "How it is being projected",
     "controls": "Controls",
-    "avatar": "Avatar and settings",
-    "adjustments": "Interpretation settings",
+    "avatar": "Avatars",
     "signs": "Signs",
     "noGloss": "No gloss to interpret yet. Use \"Test avatar\" to see it in action.",
     "status": {
@@ -230,15 +235,9 @@
     "stop": "Stop",
     "repeat": "Repeat",
     "speed": "Speed",
-    "region": "Sign region",
     "autoInterpret": "Interpret every slide automatically",
     "showSlide": "Show the slide in the background",
     "position": "Avatar position",
-    "positions": {
-      "left": "Left",
-      "center": "Center",
-      "right": "Right"
-    },
     "size": "Size",
     "sync": {
       "title": "Synchronization",
@@ -275,12 +274,7 @@
       "primaryShort": "primary",
       "identify": "Identify screens",
       "inUse": "The overlay is here"
-    },
-    "delay": "Delay before signing starts",
-    "advance": "Head start before signing starts",
-    "delayNone": "no delay",
-    "delayValue": "{seconds} s",
-    "delayHint": "Delaying waits a little longer even once the signs are already ready. A head start shortens how long the avatar waits for the signs to download before starting anyway. Counted from the moment the slide goes on the air. Applies to every slide (and to the overlay)."
+    }
   },
   "splash": {
     "pages": "Preparing the screens…",
@@ -291,8 +285,8 @@
     "purpose": "Translate and interpret into Libras, in real time, whatever LouvorJA projects — free and open source for churches.",
     "version": "Version {version}",
     "credits": {
-      "title": "Developers",
-      "description": "Who created and maintains Louvor JA and this Libras distribution."
+      "title": "Developer",
+      "description": "Who created and maintains App Libras."
     }
   }
 }

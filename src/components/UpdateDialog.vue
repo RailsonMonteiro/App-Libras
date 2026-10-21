@@ -1,4 +1,7 @@
 <script setup lang="ts">
+// Icon from Flaticon's UIcons (see NOTICE.md for the required credit): "regular rounded", the
+// same one used for the update notice elsewhere (AppNavbar.vue, SettingsDrawer.vue).
+import '@flaticon/flaticon-uicons/css/regular/rounded.css'
 import { computed } from 'vue'
 import { useUpdaterStore } from '@/stores/updater.store'
 
@@ -13,7 +16,7 @@ const notes = computed(() => updater.state.releaseNotes?.replace(/<[^>]+>/g, '')
   <v-dialog v-model="open" max-width="480" data-testid="update-dialog">
     <v-card>
       <v-card-title class="d-flex align-center ga-2">
-        <v-icon color="primary">mdi-cloud-download-outline</v-icon>
+        <i class="dialog-icon-fi fi fi-rr-down-to-line" />
         {{ $t('settings.updates.available') }}
       </v-card-title>
       <v-card-subtitle v-if="updater.state.version">
@@ -56,6 +59,14 @@ const notes = computed(() => updater.state.releaseNotes?.replace(/<[^>]+>/g, '')
 </template>
 
 <style scoped>
+.dialog-icon-fi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(var(--v-theme-primary));
+  font-size: 22px;
+}
+
 .update-notes {
   max-height: 200px;
   margin: 0;

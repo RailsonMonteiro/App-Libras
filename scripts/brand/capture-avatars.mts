@@ -22,7 +22,7 @@ try {
 
   // The overlay shows the avatar alone on a transparent page; keep it visible without a slide.
   await main.evaluate("window.louvorja.settings.set('overlayOnlyDuringPresentation', false)")
-  await main.evaluate("window.louvorja.settings.set('avatarPosition', 'center')")
+  await main.evaluate("window.louvorja.settings.set('avatarPosition', 50)")
   await main.evaluate('window.louvorja.overlay.open(null)')
   await main.waitForTimeout(500)
   const overlay = app.windows().find((w) => w.url().includes('#/overlay'))

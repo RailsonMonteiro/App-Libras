@@ -15,13 +15,12 @@ O caminho de cada slide é sempre o mesmo, e a tela **Projeção** mostra em que
 4. **Avatar.** Só então o avatar começa. Se os sinais demorarem mais de 2,5 s, ele começa mesmo assim e
    baixa o que faltar; a etapa "Sinais" fica em amarelo se algum não pôde ser baixado.
 
-**Atraso para começar a interpretar.** Em Projeção → Avatar e ajustes há um controle de 0 a 15 s (de meio em meio
-segundo; padrão 0). Se a letra entra no ar e a interpretação deve começar 3 s depois, ajuste 3 s. O
-tempo conta a partir do momento em que o slide entrou no ar, então a tradução e o download dos sinais já
-estão dentro dele (se demorarem mais que o atraso, o avatar começa assim que estiver pronto). Vale para
-cada slide, na janela principal e no overlay, e a etapa "Avatar" da sincronização mostra "começa em N s".
-Se outro slide chegar (ou a apresentação acabar) durante a espera, ela é descartada. Interpretar,
-repetir e os outros botões da tela Projeção não esperam.
+**Atraso para começar a interpretar.** `interpretDelay` (`INTERPRET_DELAY_RANGE` em `settings.ts`)
+ainda existe no armazenamento de configurações, mas não há mais controle para ele em Projeção →
+Ajustes: fica sempre no mínimo (-2,5 s, o maior adiantamento possível), para que o avatar comece a
+interpretar assim que o texto chegar, sem esperar pelos sinais. Vale para cada slide, na janela
+principal e no overlay. Se outro slide chegar (ou a apresentação acabar) enquanto os sinais ainda
+baixam, a espera é descartada. Interpretar, repetir e os outros botões da tela Projeção não esperam.
 
 Regras que mantêm tudo em ordem (`avatar.store.ts`):
 

@@ -7,24 +7,25 @@ import type { Slide } from '../../../../src/modules/louvorja/types/louvorja.type
 const endpoint = { host: '192.168.0.10', port: 7070, token: 'AB12c' } as const
 
 describe('ConnectionRepository', () => {
-  it('saves an endpoint once and tracks the last used one', () => {
+  it('saves an endpoint and tracks the last used one', () => {
     const repo = new ConnectionRepository(openDatabase(':memory:'))
     expect(repo.getLast()).toBeNull()
 
     repo.markConnected(endpoint)
-    repo.markConnected({ ...endpoint, token: 'NEW99' }) // same address: updates the token
+    repo.markConnected({ ...endpoint, token: 'NEW99' }) // same host/port: replaces it
     repo.markConnected({ host: 'OTHER.local', port: 9000, token: '' })
 
     const list = repo.list()
     expect(list).toHaveLength(2)
-    expect(repo.getLast()).toMatchObject({ host: 'other.local', port: 9000, token: '' })
-    expect(list.find((c) => c.host === '192.168.0.10')?.token).toBe('NEW99')
+    expect(repo.getLast()).toMatchObject({ host: 'other.local', port: 9000 })
+    expect(list.find((c) => c.host === endpoint.host)?.token).toBe('NEW99')
   })
 
-  it('removes saved endpoints', () => {
+  it('removes a saved connection', () => {
     const repo = new ConnectionRepository(openDatabase(':memory:'))
     repo.markConnected(endpoint)
-    repo.remove(repo.list()[0]!.id)
+    const id = repo.list()[0]!.id
+    repo.remove(id)
     expect(repo.list()).toEqual([])
   })
 

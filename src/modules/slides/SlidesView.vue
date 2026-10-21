@@ -38,7 +38,7 @@ const isLive = computed(() => selected.value === null)
     </v-card>
 
     <v-row v-else>
-      <v-col cols="12" lg="8">
+      <v-col cols="12">
         <v-card :title="$t('slides.current')" prepend-icon="mdi-presentation">
           <template #append>
             <v-chip v-if="isLive" color="error" size="small" label data-testid="live-chip">
@@ -79,21 +79,6 @@ const isLive = computed(() => selected.value === null)
           <v-card-text>
             <GlossView :text="shown?.text ?? ''" />
           </v-card-text>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" lg="4">
-        <v-card :title="$t('slides.received')" prepend-icon="mdi-format-list-bulleted">
-          <v-list bg-color="transparent" density="compact" data-testid="slides-history">
-            <v-list-item
-              v-for="slide in history"
-              :key="keyOf(slide)"
-              :active="shown !== null && keyOf(slide) === keyOf(shown)"
-              :title="slide.text.split('\n')[0]"
-              :subtitle="slide.title ?? $t(`slides.kinds.${slide.kind}`)"
-              @click="selectedKey = slide === store.currentSlide ? null : keyOf(slide)"
-            />
-          </v-list>
         </v-card>
       </v-col>
     </v-row>

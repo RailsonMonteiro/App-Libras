@@ -1,8 +1,6 @@
 import {
   DEFAULT_DICTIONARY_URL,
   type AvatarId,
-  type AvatarPosition,
-  type AvatarSpeed,
   type RegionCode
 } from '@/modules/avatar/types/avatar.types'
 import {
@@ -18,7 +16,7 @@ export const APP_LOCALES = ['pt-BR', 'es', 'en'] as const
 export type AppLocale = (typeof APP_LOCALES)[number]
 
 /** Limits of the avatar size (percent of the stage height). */
-export const AVATAR_SCALE_RANGE = { min: 30, max: 100 } as const
+export const AVATAR_SCALE_RANGE = { min: 0, max: 100 } as const
 
 /**
  * How long (seconds) the avatar waits after a slide comes on the air before it starts signing.
@@ -48,15 +46,16 @@ export interface AppSettings {
 
   /** Which of the VLibras avatars signs. */
   avatar: AvatarId
-  avatarSpeed: AvatarSpeed
+  avatarSpeed: number
   /** Regional variant of the signs ("BR" is the national standard). */
   signRegion: RegionCode
   /** Signs every slide that arrives from LouvorJA without anyone pressing play. */
   autoInterpret: boolean
-  /** Seconds between a slide coming on the air and the avatar starting to sign it. */
+  /** Seconds between a slide coming on the air and the avatar starting to sign it. Not exposed
+   *  in Ajustes any more - it always sits at INTERPRET_DELAY_RANGE.min (fastest start). */
   interpretDelay: number
-  /** Where the avatar stands on the stage, and how big it is. */
-  avatarPosition: AvatarPosition
+  /** Where the avatar stands on the stage (see AVATAR_POSITION_RANGE), and how big it is. */
+  avatarPosition: number
   avatarScale: number
   /** Shows the slide text behind the avatar in the projection preview. */
   stageShowSlide: boolean
@@ -85,8 +84,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   avatarSpeed: 1,
   signRegion: 'BR',
   autoInterpret: true,
-  interpretDelay: 0,
-  avatarPosition: 'right',
+  // No longer adjustable from Ajustes: always the fastest the avatar can start (see
+  // INTERPRET_DELAY_RANGE.min above) - it should sign the moment the text arrives.
+  interpretDelay: INTERPRET_DELAY_RANGE.min,
+  avatarPosition: 100,
   avatarScale: 90,
   stageShowSlide: true,
   dictionaryUrl: DEFAULT_DICTIONARY_URL,

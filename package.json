@@ -1,11 +1,11 @@
 {
   "name": "louvorja-libras",
-  "productName": "LouvorJA Libras",
-  "version": "1.4.0",
+  "productName": "APP Libras",
+  "version": "1.7.0",
   "description": "Avatar 3D de Libras integrado ao LouvorJA. Open source e gratuito para igrejas.",
   "private": true,
   "license": "LGPL-3.0-only",
-  "author": "Comunidade LouvorJA Libras",
+  "author": "Comunidade APP Libras",
   "main": "./out/main/index.js",
   "engines": {
     "node": ">=22.12.0"
@@ -40,6 +40,7 @@
     "@flaticon/flaticon-uicons": "^3.3.1",
     "@fontsource/roboto": "^5.3.0",
     "@mdi/font": "^7.4.47",
+    "@phosphor-icons/web": "^2.1.2",
     "electron-updater": "^6.8.9",
     "pinia": "^4.0.3",
     "vue": "^3.5.43",

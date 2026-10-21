@@ -56,7 +56,7 @@ const emit = defineEmits<{ commit: [] }>()
 .url-field :deep(.v-field--focused) {
   border-color: var(--accent-blue);
   background: transparent;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+  box-shadow: 0 0 0 3px rgba(75, 166, 150, 0.18);
 }
 
 .url-field :deep(.v-field--error) {

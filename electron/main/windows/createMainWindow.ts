@@ -14,7 +14,7 @@ export function createMainWindow(): BrowserWindow {
     // Custom title bar rendered by the app (same look as LouvorJA).
     frame: false,
     backgroundColor: '#181722',
-    title: 'LouvorJA Libras',
+    title: 'APP Libras',
     icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

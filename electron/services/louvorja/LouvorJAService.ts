@@ -71,7 +71,7 @@ export class LouvorJAService {
     this.connection.disconnect()
   }
 
-  /** Reconnects to the last endpoint that worked. Returns false when there is none. */
+  /** Reconnects to whichever endpoint was connected most recently. False when none was. */
   connectToLast(): boolean {
     const last = this.connections.getLast()
     if (!last) return false
