@@ -7,6 +7,11 @@ files:
   - out/**
   - package.json
 asar: true
+# The PowerPoint PowerShell scripts (electron/services/powerpoint) need a real file path a fresh
+# `powershell.exe -File` can load - it cannot reach inside app.asar - so they ship unpacked.
+extraResources:
+  - from: electron/services/powerpoint/scripts
+    to: powershell
 # Electron-builder's default template ("${productName} Setup ${version}.${ext}") has spaces -
 # the v1.4.0 release ended up with a renamed installer that no longer matched the "latest.yml"
 # electron-builder generated for it (dashes), breaking auto-update's download step. One fixed,

@@ -96,32 +96,32 @@ async function submit(): Promise<void> {
           @update:model-value="touched = false"
         />
       </div>
+
+      <div class="field token-field">
+        <label class="field-label">{{ $t('integration.form.token') }}</label>
+        <v-text-field
+          v-model="endpoint.token"
+          :error-messages="touched && !tokenValid ? $t('integration.form.tokenInvalid') : ''"
+          :disabled="store.isActive"
+          :type="showToken ? 'text' : 'password'"
+          :append-inner-icon="showToken ? 'mdi-eye-off' : 'mdi-eye'"
+          variant="solo-filled"
+          flat
+          density="comfortable"
+          hide-details="auto"
+          prepend-inner-icon="mdi-key-variant"
+          autocomplete="off"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+          data-testid="field-token"
+          @click:append-inner="showToken = !showToken"
+          @update:model-value="touched = false"
+        />
+      </div>
     </div>
 
-    <div class="field token-field">
-      <label class="field-label">{{ $t('integration.form.token') }}</label>
-      <v-text-field
-        v-model="endpoint.token"
-        :hint="$t('integration.form.tokenHint')"
-        persistent-hint
-        :error-messages="touched && !tokenValid ? $t('integration.form.tokenInvalid') : ''"
-        :disabled="store.isActive"
-        :type="showToken ? 'text' : 'password'"
-        :append-inner-icon="showToken ? 'mdi-eye-off' : 'mdi-eye'"
-        variant="solo-filled"
-        flat
-        density="comfortable"
-        hide-details="auto"
-        prepend-inner-icon="mdi-key-variant"
-        autocomplete="off"
-        autocapitalize="off"
-        autocorrect="off"
-        spellcheck="false"
-        data-testid="field-token"
-        @click:append-inner="showToken = !showToken"
-        @update:model-value="touched = false"
-      />
-    </div>
+    <p class="token-hint">{{ $t('integration.form.tokenHint') }}</p>
 
     <v-btn
       type="submit"
@@ -151,26 +151,40 @@ async function submit(): Promise<void> {
   gap: 18px;
 }
 
+/* The token field's own hint, moved here so it spans the whole row (Endereço/Porta/Token)
+   instead of wrapping inside the token field's own narrow column. */
+.token-hint {
+  margin: -8px 2px 0;
+  color: var(--sidebar-text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .field-label {
   display: block;
   margin: 0 2px 6px;
   color: var(--sidebar-text-secondary);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.3px;
 }
 
 .field-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
 }
 
 .host-field {
   flex: 1;
-  min-width: 0;
+  min-width: 160px;
 }
 
 .port-field {
+  flex: 0 0 140px;
+}
+
+.token-field {
   flex: 0 0 140px;
 }
 

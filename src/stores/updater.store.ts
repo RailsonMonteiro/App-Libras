@@ -33,9 +33,13 @@ export const useUpdaterStore = defineStore('updater', () => {
     state.value = await api().updater.check()
   }
 
+  async function download(): Promise<void> {
+    state.value = await api().updater.download()
+  }
+
   function install(): void {
     void api().updater.install()
   }
 
-  return { state, checking, init, check, install }
+  return { state, checking, init, check, download, install }
 })

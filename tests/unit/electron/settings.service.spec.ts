@@ -17,6 +17,14 @@ describe('SettingsService', () => {
     expect(service.set('locale', 'en').locale).toBe('en')
   })
 
+  it('forgets every stored value and goes back to the defaults', () => {
+    const service = new SettingsService(openDatabase(':memory:'))
+    service.set('theme', 'dark')
+    service.set('locale', 'en')
+    expect(service.resetAll()).toEqual(DEFAULT_SETTINGS)
+    expect(service.getAll()).toEqual(DEFAULT_SETTINGS)
+  })
+
   it('rejects invalid values', () => {
     const service = new SettingsService(openDatabase(':memory:'))
     expect(() => service.set('theme', 'neon' as never)).toThrow()
@@ -44,11 +52,11 @@ describe('SettingsService avatar settings', () => {
   it('has sensible avatar defaults', () => {
     expect(make().getAll()).toMatchObject({
       avatar: 'icaro',
-      avatarSpeed: 1,
+      avatarSpeed: 2.5,
       signRegion: 'BR',
       autoInterpret: true,
       avatarPosition: 100,
-      avatarScale: 90,
+      avatarScale: 60,
       stageShowSlide: true
     })
   })
@@ -127,10 +135,10 @@ describe('SettingsService interpretation delay', () => {
 describe('SettingsService overlay settings', () => {
   const make = () => new SettingsService(openDatabase(':memory:'))
 
-  it('starts with an automatic screen and no auto-open', () => {
+  it('starts with an automatic screen and auto-open on', () => {
     expect(make().getAll()).toMatchObject({
       overlayDisplayId: null,
-      overlayAutoOpen: false,
+      overlayAutoOpen: true,
       overlayOnlyDuringPresentation: true
     })
   })

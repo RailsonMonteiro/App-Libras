@@ -230,7 +230,7 @@ describe('avatar store', () => {
     const { frame, sent, emit } = fakeFrame()
     store.attach(frame)
     emit('on_load_player')
-    settings.settings = { ...DEFAULT_SETTINGS, autoInterpret: true }
+    settings.settings = { ...DEFAULT_SETTINGS, autoInterpret: true, continuousPlayback: false }
     sent.length = 0
 
     louvorja.currentSlide = slide('s1', 'Glória a Deus', 'Amém')
@@ -306,7 +306,14 @@ describe('avatar store, synchronization with the presentation', () => {
     frame.emit('on_load_player')
     // interpretDelay: 0, not DEFAULT_SETTINGS' fastest-advance value - these tests are about the
     // sign-waiting mechanism itself, not the "no delay, no advance" case it defaults to now.
-    ctx.settings.settings = { ...DEFAULT_SETTINGS, autoInterpret: true, interpretDelay: 0 }
+    // continuousPlayback: false - these tests are about the per-current-slide path, which
+    // reprodução contínua (on by default now) would otherwise skip entirely.
+    ctx.settings.settings = {
+      ...DEFAULT_SETTINGS,
+      autoInterpret: true,
+      continuousPlayback: false,
+      interpretDelay: 0
+    }
     await nextTick() // the settings reach the player
     frame.sent.length = 0
     return { ...ctx, louvorja, ...frame }

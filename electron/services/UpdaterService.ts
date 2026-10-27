@@ -30,14 +30,15 @@ function releaseNotesOf(info: UpdateInfo): string | null {
 /**
  * Wraps `electron-updater`'s `autoUpdater` (fed by the "latest*.yml" electron-builder publishes
  * alongside each GitHub release - see `publish` in electron-builder.yml) so the renderer gets a
- * plain, typed state instead of the library's own event stream. Downloads happen on their own
- * once a newer version is found; `install()` is the only thing a person has to ask for.
+ * plain, typed state instead of the library's own event stream. Finding an update never starts
+ * downloading it by itself - `download()` and `install()` both only ever run on request, never
+ * behind someone's back.
  */
 export class UpdaterService {
   private state: UpdaterState = IDLE
 
   constructor(private readonly logs: LogService) {
-    autoUpdater.autoDownload = true
+    autoUpdater.autoDownload = false
     // We ask for a restart ourselves (install()); never behind someone's back on quit.
     autoUpdater.autoInstallOnAppQuit = false
 
@@ -46,9 +47,9 @@ export class UpdaterService {
     )
     autoUpdater.on('update-available', (info) =>
       this.set({
-        status: 'downloading',
+        status: 'available',
         version: info.version,
-        progressPercent: 0,
+        progressPercent: null,
         releaseNotes: releaseNotesOf(info)
       })
     )
@@ -92,6 +93,20 @@ export class UpdaterService {
       // Also reaches the 'error' event above; caught here only so a rejected promise never
       // reaches the IPC caller (handle() would otherwise turn it into a thrown renderer error).
       this.logs.error('updater', 'checkForUpdates() rejected', { error: String(error) })
+    }
+    return this.state
+  }
+
+  /** Starts downloading the update found by check(). Ignored unless one is actually available. */
+  async download(): Promise<UpdaterState> {
+    if (this.state.status !== 'available') return this.state
+    this.set({ status: 'downloading', progressPercent: 0 })
+
+    try {
+      await autoUpdater.downloadUpdate()
+    } catch (error) {
+      // Also reaches the 'error' event above; caught here for the same reason as in check().
+      this.logs.error('updater', 'downloadUpdate() rejected', { error: String(error) })
     }
     return this.state
   }

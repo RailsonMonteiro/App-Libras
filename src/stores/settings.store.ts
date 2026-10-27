@@ -19,5 +19,9 @@ export const useSettingsStore = defineStore('settings', () => {
     settings.value = await api().settings.set(key, value)
   }
 
-  return { settings, load, watchChanges, update }
+  async function resetAll(): Promise<void> {
+    settings.value = await api().settings.resetAll()
+  }
+
+  return { settings, load, watchChanges, update, resetAll }
 })

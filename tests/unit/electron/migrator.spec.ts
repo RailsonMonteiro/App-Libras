@@ -50,7 +50,8 @@ describe('migrator', () => {
       '0005_external_player_connections',
       '0006_drop_external_player_connections',
       '0007_connection_profiles',
-      '0008_single_connection'
+      '0008_single_connection',
+      '0009_presentation_source'
     ])
 
     const columns = db

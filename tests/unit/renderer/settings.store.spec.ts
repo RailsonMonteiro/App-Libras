@@ -35,9 +35,17 @@ describe('settings store', () => {
         removeConnection: vi.fn(),
         onEvent: vi.fn()
       },
+      powerpoint: {
+        getState: vi.fn(),
+        control: vi.fn(),
+        pickFile: vi.fn(),
+        loadFile: vi.fn(),
+        onEvent: vi.fn()
+      },
       updater: {
         getState: vi.fn(),
         check: vi.fn(),
+        download: vi.fn(),
         install: vi.fn(),
         onStateChange: vi.fn()
       },
@@ -46,6 +54,7 @@ describe('settings store', () => {
         set: vi
           .fn()
           .mockImplementation(async (key, value) => ({ ...DEFAULT_SETTINGS, [key]: value })),
+        resetAll: vi.fn().mockResolvedValue({ ...DEFAULT_SETTINGS }),
         onChange: vi.fn()
       }
     }
@@ -62,5 +71,12 @@ describe('settings store', () => {
     const store = useSettingsStore()
     await store.update('locale', 'en')
     expect(store.settings.locale).toBe('en')
+  })
+
+  it('resets every setting back to the defaults', async () => {
+    const store = useSettingsStore()
+    await store.update('locale', 'en')
+    await store.resetAll()
+    expect(store.settings).toEqual(DEFAULT_SETTINGS)
   })
 })

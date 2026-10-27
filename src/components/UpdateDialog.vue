@@ -44,10 +44,20 @@ const notes = computed(() => updater.state.releaseNotes?.replace(/<[^>]+>/g, '')
           {{ $t('settings.close') }}
         </v-btn>
         <v-btn
+          v-if="updater.state.status !== 'downloaded'"
           color="primary"
           variant="tonal"
           :loading="updater.state.status === 'downloading'"
-          :disabled="updater.state.status !== 'downloaded'"
+          :disabled="updater.state.status !== 'available'"
+          data-testid="update-download"
+          @click="updater.download()"
+        >
+          {{ $t('settings.updates.download') }}
+        </v-btn>
+        <v-btn
+          v-else
+          color="primary"
+          variant="tonal"
           data-testid="update-now"
           @click="updater.install()"
         >

@@ -4,7 +4,7 @@
 // loaded for the navbar's Slides icon.
 import '@phosphor-icons/web/regular/style.css'
 import { storeToRefs } from 'pinia'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ToggleRow from '@/components/ToggleRow.vue'
 import AvatarPicker from '@/modules/avatar/components/AvatarPicker.vue'
@@ -12,7 +12,7 @@ import SignProgress from '@/modules/avatar/components/SignProgress.vue'
 import { useAvatarStore } from '@/modules/avatar/stores/avatar.store'
 import { AVATAR_POSITION_RANGE, AVATAR_SPEED_RANGE } from '@/modules/avatar/types/avatar.types'
 import { useLibrasStore } from '@/modules/libras/stores/libras.store'
-import { useLouvorJAStore } from '@/modules/louvorja/stores/louvorja.store'
+import { useActivePresentationSource } from '@/composables/useActivePresentationSource'
 import { useOverlayStore } from '@/modules/overlay/stores/overlay.store'
 import { useSettingsStore } from '@/stores/settings.store'
 import { AVATAR_SCALE_RANGE, type AppSettings } from '@/types/settings'
@@ -22,7 +22,7 @@ import SyncStatus from './components/SyncStatus.vue'
 const { t } = useI18n()
 const avatar = useAvatarStore()
 const libras = useLibrasStore()
-const louvorja = useLouvorJAStore()
+const louvorja = useActivePresentationSource()
 const overlay = useOverlayStore()
 const settingsStore = useSettingsStore()
 const { settings } = storeToRefs(settingsStore)
@@ -39,23 +39,6 @@ const keyOf = (slide: { id: string; receivedAt: string }): string =>
 
 /** Used by "Test" while no slide has arrived, so a new avatar can be seen in action. */
 const SAMPLE_GLOSS = 'DEUS AMOR'
-
-/** "Ajustes" collapses: closed by default, opens on click, closes again on a second click on its
- *  header or anywhere outside it. */
-const adjustmentsOpen = ref(false)
-const adjustmentsCardRef = ref<HTMLElement | null>(null)
-
-function toggleAdjustments(): void {
-  adjustmentsOpen.value = !adjustmentsOpen.value
-}
-
-function onDocumentMousedown(event: MouseEvent): void {
-  if (!adjustmentsOpen.value) return
-  if (!adjustmentsCardRef.value?.contains(event.target as Node)) adjustmentsOpen.value = false
-}
-
-onMounted(() => document.addEventListener('mousedown', onDocumentMousedown))
-onBeforeUnmount(() => document.removeEventListener('mousedown', onDocumentMousedown))
 
 const statusText = computed(() => {
   if (avatar.status === 'ready') {
@@ -157,107 +140,89 @@ function togglePause(): void {
             </v-card-text>
           </v-card>
 
-          <div ref="adjustmentsCardRef">
-            <v-card>
-              <v-card-item
-                class="adjustments-toggle"
-                role="button"
-                tabindex="0"
-                :aria-expanded="adjustmentsOpen"
-                data-testid="adjustments-toggle"
-                @click="toggleAdjustments"
-                @keydown.enter="toggleAdjustments"
-                @keydown.space.prevent="toggleAdjustments"
-              >
-                <template #prepend>
-                  <i class="card-icon-ph ph ph-sliders-horizontal" />
-                </template>
-                <v-card-title>{{ $t('projection.controls') }}</v-card-title>
-                <template #append>
-                  <v-icon
-                    class="adjustments-chevron"
-                    :class="{ 'adjustments-chevron-open': adjustmentsOpen }"
-                  >
-                    mdi-chevron-down
-                  </v-icon>
-                </template>
-              </v-card-item>
+          <v-card :title="$t('projection.controls')">
+            <template #prepend>
+              <i class="card-icon-ph ph ph-sliders-horizontal" />
+            </template>
 
-              <v-expand-transition>
-                <v-card-text v-show="adjustmentsOpen">
-                  <div class="slider-row mb-5">
-                    <span class="text-subtitle-2">{{ $t('projection.speed') }}</span>
-                    <v-slider
-                      v-model="speed"
-                      :min="AVATAR_SPEED_RANGE.min"
-                      :max="AVATAR_SPEED_RANGE.max"
-                      :step="AVATAR_SPEED_RANGE.step"
-                      color="primary"
-                      density="compact"
-                      hide-details
-                      show-ticks
-                      thumb-size="14"
-                      track-size="3"
-                      class="slider-track"
-                      data-testid="avatar-speed"
-                    />
-                    <span class="slider-value">{{ speed }}×</span>
-                  </div>
+            <v-card-text>
+              <div class="slider-row mb-5">
+                <span class="text-subtitle-2">{{ $t('projection.speed') }}</span>
+                <v-slider
+                  v-model="speed"
+                  :min="AVATAR_SPEED_RANGE.min"
+                  :max="AVATAR_SPEED_RANGE.max"
+                  :step="AVATAR_SPEED_RANGE.step"
+                  color="primary"
+                  density="compact"
+                  hide-details
+                  show-ticks
+                  thumb-size="14"
+                  track-size="3"
+                  class="slider-track"
+                  data-testid="avatar-speed"
+                />
+                <span class="slider-value">{{ speed }}×</span>
+              </div>
 
-                  <div class="slider-row mb-5">
-                    <span class="text-subtitle-2">{{ $t('projection.size') }}</span>
-                    <v-slider
-                      v-model="scale"
-                      :min="AVATAR_SCALE_RANGE.min"
-                      :max="AVATAR_SCALE_RANGE.max"
-                      :step="5"
-                      color="primary"
-                      density="compact"
-                      hide-details
-                      thumb-size="14"
-                      track-size="3"
-                      class="slider-track"
-                      data-testid="avatar-scale"
-                    />
-                    <span class="slider-value">{{ scale }}%</span>
-                  </div>
+              <div class="slider-row mb-5">
+                <span class="text-subtitle-2">{{ $t('projection.size') }}</span>
+                <v-slider
+                  v-model="scale"
+                  :min="AVATAR_SCALE_RANGE.min"
+                  :max="AVATAR_SCALE_RANGE.max"
+                  :step="5"
+                  color="primary"
+                  density="compact"
+                  hide-details
+                  thumb-size="14"
+                  track-size="3"
+                  class="slider-track"
+                  data-testid="avatar-scale"
+                />
+                <span class="slider-value">{{ scale }}%</span>
+              </div>
 
-                  <div class="slider-row mb-4">
-                    <span class="text-subtitle-2">{{ $t('projection.position') }}</span>
-                    <v-slider
-                      v-model="position"
-                      :min="AVATAR_POSITION_RANGE.min"
-                      :max="AVATAR_POSITION_RANGE.max"
-                      :step="AVATAR_POSITION_RANGE.step"
-                      color="primary"
-                      density="compact"
-                      hide-details
-                      thumb-size="14"
-                      track-size="3"
-                      class="slider-track"
-                      data-testid="avatar-position"
-                    />
-                    <span class="slider-value">{{ position }}%</span>
-                  </div>
+              <div class="slider-row mb-4">
+                <span class="text-subtitle-2">{{ $t('projection.position') }}</span>
+                <v-slider
+                  v-model="position"
+                  :min="AVATAR_POSITION_RANGE.min"
+                  :max="AVATAR_POSITION_RANGE.max"
+                  :step="AVATAR_POSITION_RANGE.step"
+                  color="primary"
+                  density="compact"
+                  hide-details
+                  thumb-size="14"
+                  track-size="3"
+                  class="slider-track"
+                  data-testid="avatar-position"
+                />
+                <span class="slider-value">{{ position }}%</span>
+              </div>
 
-                  <div class="toggle-stack">
-                    <ToggleRow
-                      :model-value="settings.autoInterpret"
-                      :label="$t('projection.autoInterpret')"
-                      data-testid="avatar-auto"
-                      @update:model-value="change('autoInterpret', $event)"
-                    />
-                    <ToggleRow
-                      :model-value="settings.stageShowSlide"
-                      :label="$t('projection.showSlide')"
-                      data-testid="stage-show-slide"
-                      @update:model-value="change('stageShowSlide', $event)"
-                    />
-                  </div>
-                </v-card-text>
-              </v-expand-transition>
-            </v-card>
-          </div>
+              <div class="toggle-stack">
+                <ToggleRow
+                  :model-value="settings.autoInterpret"
+                  :label="$t('projection.autoInterpret')"
+                  data-testid="avatar-auto"
+                  @update:model-value="change('autoInterpret', $event)"
+                />
+                <ToggleRow
+                  :model-value="settings.stageShowSlide"
+                  :label="$t('projection.showSlide')"
+                  data-testid="stage-show-slide"
+                  @update:model-value="change('stageShowSlide', $event)"
+                />
+                <ToggleRow
+                  :model-value="settings.continuousPlayback"
+                  :label="$t('projection.continuousPlayback')"
+                  data-testid="avatar-continuous"
+                  @update:model-value="change('continuousPlayback', $event)"
+                />
+              </div>
+            </v-card-text>
+          </v-card>
         </v-col>
 
         <v-col cols="12" lg="8" class="d-flex flex-column ga-5">
@@ -312,12 +277,77 @@ function togglePause(): void {
                 </template>
               </v-alert>
             </v-card-text>
+            <v-card-actions class="px-4 pb-4 justify-center">
+              <div class="action-group">
+                <v-btn
+                  variant="text"
+                  class="action-btn"
+                  :disabled="!avatar.ready"
+                  :aria-label="
+                    !avatar.playing
+                      ? translation
+                        ? $t('projection.play')
+                        : $t('projection.test')
+                      : avatar.paused
+                        ? $t('projection.resume')
+                        : $t('projection.pause')
+                  "
+                  data-testid="avatar-play"
+                  @click="avatar.playing ? togglePause() : play()"
+                >
+                  <i
+                    :class="[
+                      'action-icon ph',
+                      avatar.playing && !avatar.paused ? 'ph-pause' : 'ph-play'
+                    ]"
+                  />
+                  <v-tooltip activator="parent" location="top" content-class="action-tooltip">
+                    {{
+                      !avatar.playing
+                        ? translation
+                          ? $t('projection.play')
+                          : $t('projection.test')
+                        : avatar.paused
+                          ? $t('projection.resume')
+                          : $t('projection.pause')
+                    }}
+                  </v-tooltip>
+                </v-btn>
+                <v-btn
+                  variant="text"
+                  class="action-btn"
+                  :disabled="!avatar.ready"
+                  :aria-label="$t('projection.stop')"
+                  data-testid="avatar-stop"
+                  @click="stop()"
+                >
+                  <v-icon>mdi-stop</v-icon>
+                  <v-tooltip activator="parent" location="top" content-class="action-tooltip">
+                    {{ $t('projection.stop') }}
+                  </v-tooltip>
+                </v-btn>
+                <v-btn
+                  variant="text"
+                  class="action-btn"
+                  :disabled="!avatar.ready || !avatar.gloss"
+                  :aria-label="$t('projection.repeat')"
+                  data-testid="avatar-repeat"
+                  @click="repeat()"
+                >
+                  <i class="action-icon ph ph-repeat" />
+                  <v-tooltip activator="parent" location="top" content-class="action-tooltip">
+                    {{ $t('projection.repeat') }}
+                  </v-tooltip>
+                </v-btn>
+              </div>
+            </v-card-actions>
           </v-card>
 
-          <v-card :title="$t('projection.controls')" prepend-icon="mdi-tune">
+          <v-card>
             <v-card-text>
               <div>
-                <h3 class="text-subtitle-1 font-weight-medium mb-2">
+                <h3 class="text-subtitle-1 font-weight-medium mb-2 sync-title">
+                  <i class="ph ph-arrows-clockwise" />
                   {{ $t('projection.sync.title') }}
                 </h3>
                 <SyncStatus />
@@ -331,44 +361,6 @@ function togglePause(): void {
                 <p v-else class="text-medium-emphasis">{{ $t('projection.noGloss') }}</p>
               </div>
             </v-card-text>
-            <v-card-actions class="px-4 pb-4 ga-2">
-              <v-btn
-                color="primary"
-                prepend-icon="mdi-play"
-                :disabled="!avatar.ready"
-                data-testid="avatar-play"
-                @click="play"
-              >
-                {{ translation ? $t('projection.play') : $t('projection.test') }}
-              </v-btn>
-              <v-btn
-                variant="tonal"
-                :prepend-icon="avatar.paused ? 'mdi-play-pause' : 'mdi-pause'"
-                :disabled="!avatar.ready || !avatar.playing"
-                data-testid="avatar-pause"
-                @click="togglePause()"
-              >
-                {{ avatar.paused ? $t('projection.resume') : $t('projection.pause') }}
-              </v-btn>
-              <v-btn
-                variant="tonal"
-                prepend-icon="mdi-stop"
-                :disabled="!avatar.ready"
-                data-testid="avatar-stop"
-                @click="stop()"
-              >
-                {{ $t('projection.stop') }}
-              </v-btn>
-              <v-btn
-                variant="tonal"
-                prepend-icon="mdi-repeat"
-                :disabled="!avatar.ready || !avatar.gloss"
-                data-testid="avatar-repeat"
-                @click="repeat()"
-              >
-                {{ $t('projection.repeat') }}
-              </v-btn>
-            </v-card-actions>
           </v-card>
         </v-col>
       </v-row>
@@ -384,6 +376,9 @@ function togglePause(): void {
           v-for="slide in history"
           :key="keyOf(slide)"
           :active="slide === louvorja.currentSlide"
+          :class="{ 'slide-translating': keyOf(slide) === avatar.activeSlideKey }"
+          data-testid="slide-history-item"
+          :data-translating="keyOf(slide) === avatar.activeSlideKey"
           :title="slide.text.split('\n')[0]"
           :subtitle="slide.title ?? $t(`slides.kinds.${slide.kind}`)"
         />
@@ -400,6 +395,11 @@ function togglePause(): void {
   display: flex;
   align-items: flex-start;
   gap: 20px;
+  /* .content (App.vue) is the page's own scroll container, with a real height all the way up to
+     the viewport - this page's root can size itself against that same height, which is what lets
+     .history-sidebar below cap itself to "how tall the screen actually is" instead of to its
+     sibling's content height (circular: that sibling can grow without bound). */
+  height: 100%;
 }
 
 /* .page-container (main.scss) centres its max-width in the content area, which left this page's
@@ -410,10 +410,31 @@ function togglePause(): void {
   margin-inline: 0;
 }
 
+/* Caps at the visible height (not at its sibling's, which can grow past the screen) and keeps
+   that height even once there are more slides than fit: the list inside scrolls on its own
+   instead of growing the card (and overflowing to the page's own outer scrollbar). */
 .history-sidebar {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 260px;
   min-width: 260px;
-  align-self: stretch;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.history-sidebar :deep(.v-list) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Which slide the avatar is signing right now - not always the one LouvorJA has "ao vivo"
+   (:active, Vuetify's own highlight above): in reprodução contínua the avatar can still be
+   working through older ones from the queue. */
+.history-sidebar :deep(.slide-translating) {
+  background: rgba(75, 166, 150, 0.12);
+  border-radius: 8px;
 }
 
 .card-icon-ph {
@@ -424,24 +445,54 @@ function togglePause(): void {
   font-size: 22px;
 }
 
-/* "Ajustes" collapses: its header is the only clickable part (not the sliders/switches inside),
-   with a chevron that flips to show the open state. */
-.adjustments-toggle {
-  cursor: pointer;
-  user-select: none;
+/* Phosphor icons used as the content of an icon-only v-btn (play/pause): match the size and
+   vertical centering that <v-icon> would otherwise give those buttons for free. */
+.sync-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.adjustments-toggle:focus-visible {
-  outline: none;
-  background: var(--sidebar-hover);
+.sync-title .ph {
+  font-size: 18px;
+  color: var(--sidebar-text-secondary);
 }
 
-.adjustments-chevron {
-  transition: transform 0.2s ease;
+.action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
 }
 
-.adjustments-chevron-open {
-  transform: rotate(180deg);
+/* Play/pause, stop and repeat as one pill instead of three separate buttons: a single shared
+   background, no gaps, a thin divider between each action. */
+.action-group {
+  display: inline-flex;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: rgba(127, 127, 127, 0.07);
+  overflow: hidden;
+}
+
+.action-btn {
+  border-radius: 0 !important;
+}
+
+.action-btn:not(:last-child) {
+  border-right: 1px solid var(--border-color);
+}
+
+/* content-class puts this class on the same element as .v-overlay__content (teleported to
+   <body>, outside this component's scoped styles) - not on a wrapper around it, hence the
+   combined selector and !important to beat Vuetify's own tooltip padding/radius rule. */
+:global(.v-overlay__content.action-tooltip) {
+  min-width: 0 !important;
+  padding: 2px 8px !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+  line-height: 1.6 !important;
 }
 
 /* Compact, inline style shared by "Velocidade" and "Adiantamento/Atraso": label, track and value
@@ -453,6 +504,10 @@ function togglePause(): void {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 12px;
+}
+
+.slider-row .text-subtitle-2 {
+  font-weight: 400;
 }
 
 .slider-track {

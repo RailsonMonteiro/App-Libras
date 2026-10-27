@@ -83,4 +83,24 @@ describe('PresentationRepository', () => {
     expect(repo.prune(30)).toBe(1)
     expect(repo.countSlides()).toBe(1)
   })
+
+  it('keeps independent sources sharing the same tables from ever seeing each other', () => {
+    const db = openDatabase(':memory:')
+    const louvorja = new PresentationRepository(db) // default source: 'louvorja'
+    const powerpoint = new PresentationRepository(db, 'powerpoint')
+    const presentation = { id: 'same-id', title: 'x', startedAt: '2026-01-01T10:00:00.000Z' }
+
+    const louvorjaRowId = louvorja.start(presentation)
+    const powerpointRowId = powerpoint.start(presentation)
+    expect(powerpointRowId).not.toBe(louvorjaRowId) // same external_id, different source
+
+    // Still open for one source: the other source's start() with the same id is unaffected.
+    expect(louvorja.start(presentation)).toBe(louvorjaRowId)
+
+    louvorja.end('same-id', '2026-01-01T11:00:00.000Z')
+    // Ending the LouvorJA one does not end PowerPoint's - a fresh start() for it reuses its row.
+    expect(powerpoint.start(presentation)).toBe(powerpointRowId)
+    // But LouvorJA's really did end: starting again opens a new row.
+    expect(louvorja.start(presentation)).not.toBe(louvorjaRowId)
+  })
 })

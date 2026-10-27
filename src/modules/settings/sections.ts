@@ -7,6 +7,7 @@ export const SETTINGS_SECTIONS = [
   'translator',
   'overlay',
   'updates',
+  'reset',
   'about'
 ] as const
 export type SettingsSection = (typeof SETTINGS_SECTIONS)[number]
@@ -17,6 +18,7 @@ export const SETTINGS_SECTION_ICONS: Record<SettingsSection, string> = {
   translator: 'mdi-hand-wave',
   overlay: 'mdi-layers-outline',
   updates: 'fi fi-rr-down-to-line',
+  reset: 'mdi-restore',
   about: 'mdi-information-outline'
 }
 

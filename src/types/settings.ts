@@ -36,10 +36,10 @@ export interface AppSettings {
   autoConnect: boolean
   /** Minimizing the window hides it to the system tray instead of dropping it to the taskbar. */
   runInBackground: boolean
-  /**
-   * Lets the app send slide text to a VLibras translation server. Off by default: the text
-   * leaves the computer.
-   */
+  /** Registers the app to start with Windows (or the OS login) itself, hidden in the tray. */
+  startWithWindows: boolean
+  /** Lets the app send slide text to a VLibras translation server, instead of only the local
+   *  translator - when on, that text leaves the computer. */
   onlineTranslator: boolean
   translatorUrl: string
   signsIndexUrl: string
@@ -51,6 +51,12 @@ export interface AppSettings {
   signRegion: RegionCode
   /** Signs every slide that arrives from LouvorJA without anyone pressing play. */
   autoInterpret: boolean
+  /**
+   * Instead of jumping straight to whatever slide is on the air (dropping anything still being
+   * signed), plays through every slide received, in order, moving to the next only once the
+   * current one finishes on its own - until there is nothing left queued.
+   */
+  continuousPlayback: boolean
   /** Seconds between a slide coming on the air and the avatar starting to sign it. Not exposed
    *  in Ajustes any more - it always sits at INTERPRET_DELAY_RANGE.min (fastest start). */
   interpretDelay: number
@@ -75,24 +81,26 @@ export const DEFAULT_SETTINGS: AppSettings = {
   locale: 'pt-BR',
   sidebarPinned: true,
   autoConnect: true,
-  runInBackground: false,
-  onlineTranslator: false,
+  runInBackground: true,
+  startWithWindows: false,
+  onlineTranslator: true,
   translatorUrl: DEFAULT_TRANSLATOR_URL,
   signsIndexUrl: DEFAULT_SIGNS_INDEX_URL,
 
   avatar: 'icaro',
-  avatarSpeed: 1,
+  avatarSpeed: 2.5,
   signRegion: 'BR',
   autoInterpret: true,
+  continuousPlayback: true,
   // No longer adjustable from Ajustes: always the fastest the avatar can start (see
   // INTERPRET_DELAY_RANGE.min above) - it should sign the moment the text arrives.
   interpretDelay: INTERPRET_DELAY_RANGE.min,
   avatarPosition: 100,
-  avatarScale: 90,
+  avatarScale: 60,
   stageShowSlide: true,
   dictionaryUrl: DEFAULT_DICTIONARY_URL,
 
   overlayDisplayId: null,
-  overlayAutoOpen: false,
+  overlayAutoOpen: true,
   overlayOnlyDuringPresentation: true
 }

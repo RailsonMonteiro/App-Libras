@@ -4,7 +4,11 @@ import { describe, expect, it, vi } from 'vitest'
 // The module only needs Electron when the handlers are installed, which these tests never do.
 vi.mock('electron', () => ({ net: {}, protocol: {} }))
 
-import { parseSignPath, resolveRendererFile } from '../../../../electron/main/protocol'
+import {
+  parseSignPath,
+  parseSlideImagePath,
+  resolveRendererFile
+} from '../../../../electron/main/protocol'
 import { contentSecurityPolicy } from '../../../../electron/main/security/csp'
 
 const root = resolve('/app/renderer')
@@ -52,6 +56,27 @@ describe('parseSignPath', () => {
   })
 })
 
+describe('parseSlideImagePath', () => {
+  it('splits the presentation id and index, decoding the id', () => {
+    expect(parseSlideImagePath('/__pptx-slide__/p.pptx/3.png')).toEqual({
+      presentationId: 'p.pptx',
+      index: 3
+    })
+    expect(parseSlideImagePath('/__pptx-slide__/C%3A%2Fculto.pptx/1.png')).toEqual({
+      presentationId: 'C:/culto.pptx',
+      index: 1
+    })
+  })
+
+  it('ignores other paths and malformed ones', () => {
+    expect(parseSlideImagePath('/index.html')).toBeNull()
+    expect(parseSlideImagePath('/__pptx-slide__/')).toBeNull()
+    expect(parseSlideImagePath('/__pptx-slide__/p.pptx')).toBeNull()
+    expect(parseSlideImagePath('/__pptx-slide__/p.pptx/not-a-number.png')).toBeNull()
+    expect(parseSlideImagePath('/__pptx-slide__/p.pptx/1.jpg')).toBeNull()
+  })
+})
+
 describe('contentSecurityPolicy', () => {
   it('is strict for the application', () => {
     const csp = contentSecurityPolicy('/index.html', false)
@@ -66,6 +91,19 @@ describe('contentSecurityPolicy', () => {
     expect(contentSecurityPolicy('/', true)).toContain("script-src 'self' 'unsafe-inline'")
     expect(contentSecurityPolicy('/', true)).toContain('ws://localhost:*')
     expect(contentSecurityPolicy('/', false)).not.toContain('localhost')
+  })
+
+  it('allows app:// images in both dev and production, not just connect-src', () => {
+    // In dev the page itself is served from http://localhost, not app://renderer - 'self' alone
+    // would block <img src="app://renderer/...">  (PowerPoint slide thumbnails, see
+    // PowerPointSlideImageCache) even though the equivalent fetch-based connect-src already had
+    // this exception for the sign proxy.
+    const imgSrc = (dev: boolean): string | undefined =>
+      contentSecurityPolicy('/', dev)
+        .split('; ')
+        .find((part) => part.startsWith('img-src'))
+    expect(imgSrc(true)).toContain('app://renderer')
+    expect(imgSrc(false)).toContain('app://renderer')
   })
 
   it('gives eval and WebAssembly to the player page and nothing else', () => {

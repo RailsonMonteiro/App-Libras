@@ -3,7 +3,7 @@ import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import SlidePreview from '@/components/SlidePreview.vue'
 import { AVATAR_ASPECT, useAvatarPlacement } from '@/modules/avatar/composables/useAvatarPlacement'
-import { useLouvorJAStore } from '@/modules/louvorja/stores/louvorja.store'
+import { useActivePresentationSource } from '@/composables/useActivePresentationSource'
 import { useSettingsStore } from '@/stores/settings.store'
 
 /**
@@ -18,7 +18,7 @@ const props = defineProps<{
   livePosition?: number
 }>()
 
-const louvorja = useLouvorJAStore()
+const louvorja = useActivePresentationSource()
 const { settings } = storeToRefs(useSettingsStore())
 const stage = ref<HTMLElement | null>(null)
 

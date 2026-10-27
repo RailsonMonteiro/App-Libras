@@ -2,7 +2,7 @@ import { defineStore, storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { useLibrasStore } from '@/modules/libras/stores/libras.store'
 import type { TranslationResult } from '@/modules/libras/types/libras.types'
-import { useLouvorJAStore } from '@/modules/louvorja/stores/louvorja.store'
+import { useActivePresentationSource } from '@/composables/useActivePresentationSource'
 import { api } from '@/services/api'
 import type { OverlayCommand, SignCacheStats } from '@/types/ipc'
 import { useSettingsStore } from '@/stores/settings.store'
@@ -83,6 +83,12 @@ export const useAvatarStore = defineStore('avatar', () => {
   const signsState = ref<SignsState>('idle')
   /** When the avatar will start signing the slide it is waiting for (the delay setting), if any. */
   const startsAt = ref<number | null>(null)
+  /**
+   * `${slide.id}@${slide.receivedAt}` of whichever slide the avatar is signing right now, so
+   * "Slides recebidos" can point at it - in reprodução contínua this is not always the one
+   * LouvorJA currently has on the air (see runContinuous() in init() below).
+   */
+  const activeSlideKey = ref<string | null>(null)
 
   let player: VLibrasPlayer | null = null
   let detachListeners: (() => void) | null = null
@@ -285,7 +291,7 @@ export const useAvatarStore = defineStore('avatar', () => {
       applySettings
     )
 
-    const louvorja = useLouvorJAStore()
+    const louvorja = useActivePresentationSource()
     const libras = useLibrasStore()
     const current = computed(() => {
       // The last slide is remembered after the presentation ends; it is no longer on the air.
@@ -302,16 +308,28 @@ export const useAvatarStore = defineStore('avatar', () => {
 
     watch(next, (translation) => translation && prefetchSigns(translation), { immediate: true })
 
+    const slideKey = (slide: { id: string; receivedAt: string }): string =>
+      `${slide.id}@${slide.receivedAt}`
+
     // Slide -> translation -> signs -> avatar, in that order, and always for the slide on the air:
-    // if another one arrives while this waits, this one is dropped.
+    // if another one arrives while this waits, this one is dropped. Reprodução contínua (below)
+    // replaces this entirely: it drives the avatar from the received slides, not the one on the
+    // air, so it must not also compete to play/stop the same slide.
     let lastSigned: string | null = null
     watch(
-      [current, status, () => settings.value.autoInterpret],
-      async ([slide, state, auto]) => {
+      [
+        current,
+        status,
+        () => settings.value.autoInterpret,
+        () => settings.value.continuousPlayback
+      ],
+      async ([slide, state, auto, continuous]) => {
+        if (continuous) return
         if (!slide) {
           // The slide is gone (presentation over, blank slide): the avatar must not keep signing it.
           if (lastSigned !== null && (louvorja.currentSlide === null || !louvorja.presentation)) {
             lastSigned = null
+            activeSlideKey.value = null
             startsAt.value = null
             signsState.value = 'idle'
             if (auto && (playing.value || paused.value)) stop()
@@ -347,8 +365,97 @@ export const useAvatarStore = defineStore('avatar', () => {
           if (lastSigned !== key) return // dropped while waiting: another slide, or the end
           startsAt.value = null
         }
+        if (louvorja.currentSlide) activeSlideKey.value = slideKey(louvorja.currentSlide)
         play(slide.translation.gloss)
       },
+      { immediate: true }
+    )
+
+    // --- Reprodução contínua ---
+    // Instead of always jumping to whatever slide is on the air, plays through every slide
+    // received, in order, one at a time: only moves to the next once the current one finishes by
+    // itself (not when the operator advances LouvorJA to a new one). `continuousCursor` is the
+    // key of the last slide handed to play(); it resets whenever a new presentation starts, and
+    // falls back to the oldest slide still in the queue if its own slide fell out of it (the
+    // queue keeps only the most recent 100 - see louvorja.store.ts).
+
+    // Every slide received is going to be played eventually here, not just the current one, so
+    // translate them all as they arrive instead of waiting until runContinuous() reaches each one
+    // - that wait was most of the gap the operator saw between slides. ensure() already skips
+    // anything already translated, so this costs nothing once caught up. Only while continuous
+    // playback is on: translating ahead of time sends every slide to the translator server even
+    // if it is never actually played, which matters with "tradutor online" turned on.
+    watch(
+      [() => settings.value.continuousPlayback, () => louvorja.recentSlides],
+      ([continuous, slides]) => {
+        if (!continuous) return
+        for (const slide of slides) void libras.ensure(slide.text)
+      },
+      { immediate: true }
+    )
+
+    let continuousCursor: string | null = null
+    let continuousBusy = false
+
+    watch(
+      () => louvorja.presentation?.id,
+      () => {
+        continuousCursor = null
+      }
+    )
+
+    function nextContinuousSlide(): { id: string; receivedAt: string; text: string } | null {
+      const queue = louvorja.recentSlides
+      if (queue.length === 0) return null
+      if (continuousCursor === null) return queue[0] ?? null
+      const idx = queue.findIndex((slide) => slideKey(slide) === continuousCursor)
+      return queue[idx + 1] ?? null
+    }
+
+    async function runContinuous(): Promise<void> {
+      if (!settings.value.continuousPlayback || continuousBusy) return
+      if (status.value !== 'ready' || playing.value || paused.value) return
+
+      continuousBusy = true
+      try {
+        let slide = nextContinuousSlide()
+        while (slide) {
+          // get() only sees a translation already in the cache - most queued slides were never
+          // the one on the air, so nothing ensured one for them yet (libras.store.ts's own watch
+          // only covers the current/next slide). Waiting for ensure() here, instead of treating
+          // "not cached yet" as "nothing to sign" and skipping straight past it, is what the
+          // first slide needs too: right as it arrives, its translation has not resolved yet.
+          const translation = await libras.ensure(slide.text)
+          // Turned off, or something else started playing, while this translated.
+          if (!settings.value.continuousPlayback || playing.value || paused.value) return
+          continuousCursor = slideKey(slide)
+          if (translation?.gloss) {
+            activeSlideKey.value = continuousCursor
+            const signsWaitMs = Math.max(
+              0,
+              SIGNS_WAIT_MS + Math.min(0, settings.value.interpretDelay) * 1000
+            )
+            await within(prefetchSigns(translation), signsWaitMs)
+            // Turned off, or something else started playing, while the signs were downloading.
+            if (!settings.value.continuousPlayback || playing.value || paused.value) return
+            play(translation.gloss)
+            return // the watch below calls this again once this one finishes on its own
+          }
+          slide = nextContinuousSlide() // nothing to sign for this one: skip straight to the next
+        }
+      } finally {
+        continuousBusy = false
+      }
+    }
+
+    watch(
+      [
+        () => settings.value.continuousPlayback,
+        playing,
+        status,
+        () => louvorja.recentSlides.length
+      ],
+      () => void runContinuous(),
       { immediate: true }
     )
   }
@@ -359,6 +466,7 @@ export const useAvatarStore = defineStore('avatar', () => {
     playing,
     paused,
     counter,
+    activeSlideKey,
     gloss,
     layerRect,
     reloadKey,

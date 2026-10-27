@@ -107,14 +107,14 @@ const connectedSince = computed(() => {
 .info-label {
   color: var(--sidebar-text-secondary);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.3px;
   text-transform: uppercase;
 }
 
 .info-value {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.35;
   word-break: break-word;
 }

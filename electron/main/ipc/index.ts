@@ -54,6 +54,16 @@ export function registerIpc({ settings, logs, onSettingsChanged, onHideToTray }:
     return updated
   })
 
+  handle(IpcChannels.settingsResetAll, z.undefined(), () => {
+    logs.info('settings', 'Reset to defaults')
+    const updated = settings.resetAll()
+    for (const win of BrowserWindow.getAllWindows()) {
+      if (!win.isDestroyed()) win.webContents.send(IpcChannels.settingsChanged, updated)
+    }
+    onSettingsChanged?.(updated)
+    return updated
+  })
+
   handle(IpcChannels.windowControl, z.enum(WINDOW_ACTIONS), (action, event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     if (!win) return false

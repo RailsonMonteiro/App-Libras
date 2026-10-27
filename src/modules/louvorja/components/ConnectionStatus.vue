@@ -77,7 +77,7 @@ const retryLabel = computed(() =>
       type="warning"
       variant="tonal"
       density="compact"
-      class="mt-3"
+      class="mt-3 connection-error"
       data-testid="connection-error"
       :text="errorMessage"
     />
@@ -100,5 +100,13 @@ const retryLabel = computed(() =>
   min-width: 0;
   padding-top: 1px;
   font-size: 14px;
+}
+
+.connection-error :deep(.v-alert__content) {
+  font-size: 12px;
+}
+
+.connection-error :deep(.v-icon) {
+  font-size: 18px;
 }
 </style>

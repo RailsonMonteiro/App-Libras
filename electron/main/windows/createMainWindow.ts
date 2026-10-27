@@ -4,7 +4,9 @@ import icon from '../../../build/icon.png?asset'
 import { IpcChannels } from '../../../src/types/ipc'
 import { devServerUrl } from '../security/trustedOrigin'
 
-export function createMainWindow(): BrowserWindow {
+/** `startHidden`: launched by the OS at login (see "Iniciar com o Windows", main/index.ts) - the
+ *  window stays closed to the tray instead of showing itself once it is ready. */
+export function createMainWindow(startHidden = false): BrowserWindow {
   const win = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -25,7 +27,9 @@ export function createMainWindow(): BrowserWindow {
     }
   })
 
-  win.once('ready-to-show', () => win.show())
+  win.once('ready-to-show', () => {
+    if (!startHidden) win.show()
+  })
 
   const notifyMaximized = (): void => {
     win.webContents.send(IpcChannels.windowMaximizedChanged, win.isMaximized())

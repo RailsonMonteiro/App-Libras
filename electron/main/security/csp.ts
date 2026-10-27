@@ -23,7 +23,11 @@ function application(dev: boolean): string[] {
     "style-src 'self' 'unsafe-inline'", // Vuetify applies inline styles at runtime
     // github.com/<user>.png (About's developer credits) redirects to avatars.githubusercontent.com -
     // CSP checks the redirect's target too, so both hosts are needed, image loads only.
-    "img-src 'self' data: blob: https://github.com https://avatars.githubusercontent.com",
+    // SIGNS_PROXY_ORIGIN (app://renderer) is listed explicitly, not just implied by 'self': in
+    // dev the page itself is served from http://localhost, so 'self' alone would block the
+    // PowerPoint slide thumbnails (<img src="app://renderer/__pptx-slide__/...">) - harmless to
+    // list in production too, where the page already is that origin.
+    `img-src 'self' ${SIGNS_PROXY_ORIGIN} data: blob: https://github.com https://avatars.githubusercontent.com`,
     "font-src 'self' data:",
     dev
       ? `connect-src 'self' ws://localhost:* http://localhost:* ${SIGNS_PROXY_ORIGIN}`

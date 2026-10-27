@@ -117,6 +117,10 @@ describe('libras store', () => {
     const louvorja = useLouvorJAStore()
     await store.init()
 
+    // A real slide never arrives without its presentation (SlideReceiverService opens an
+    // implicit one otherwise) - useActivePresentationSource picks a source by presentation, so
+    // this has to be set too for the slide below to actually be seen as the live one.
+    louvorja.presentation = { id: 'p1', title: 'Culto', startedAt: 'x' }
     louvorja.currentSlide = {
       id: 's1',
       presentationId: null,

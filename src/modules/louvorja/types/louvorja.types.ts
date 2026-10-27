@@ -1,4 +1,12 @@
 // Shared by the main process (adapters/services), the preload and the renderer.
+import type { Presentation, PresentationEvent, Slide } from '../../../types/presentation'
+
+export {
+  SLIDE_KINDS,
+  type SlideKind,
+  type Presentation,
+  type Slide
+} from '../../../types/presentation'
 
 /** Port the LouvorJA "Transmitir" tab uses by default (see docs/protocolo-louvorja.md). */
 export const DEFAULT_PORT = 7070
@@ -62,29 +70,6 @@ export interface ConnectionStatus {
   server: ServerInfo | null
 }
 
-export const SLIDE_KINDS = ['lyrics', 'verse', 'text', 'image', 'other'] as const
-export type SlideKind = (typeof SLIDE_KINDS)[number]
-
-export interface Presentation {
-  id: string
-  title: string
-  startedAt: string
-}
-
-export interface Slide {
-  id: string
-  presentationId: string | null
-  /** 0-based position inside the presentation, when the source reports it. */
-  index: number | null
-  total: number | null
-  title: string | null
-  text: string
-  /** Text of the slide that comes next, when the source tells it (used to translate ahead). */
-  nextText: string | null
-  kind: SlideKind
-  receivedAt: string
-}
-
 export interface SavedConnection extends Endpoint {
   id: number
   lastConnectedAt: string | null
@@ -122,10 +107,7 @@ export type IntegrationPushEvent =
   | { kind: 'slide'; slide: Slide }
 
 /** Events produced by an adapter, already independent from the wire protocol. */
-export type LouvorJAEvent =
-  | { type: 'presentation-started'; presentation: Presentation }
-  | { type: 'slide'; slide: Slide }
-  | { type: 'presentation-ended'; presentationId: string }
+export type LouvorJAEvent = PresentationEvent
 
 const IPV4 = /^\d{1,3}(\.\d{1,3}){3}$/
 const HOSTNAME =

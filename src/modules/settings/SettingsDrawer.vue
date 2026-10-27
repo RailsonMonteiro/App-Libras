@@ -3,7 +3,7 @@
 // semi-bold weight) for the "Atualizações" tab. Only this one family is loaded, not the full set.
 import '@flaticon/flaticon-uicons/css/regular/rounded.css'
 import { storeToRefs } from 'pinia'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AboutView from '@/modules/about/AboutView.vue'
 import ToggleRow from '@/components/ToggleRow.vue'
@@ -48,12 +48,6 @@ const direction = ref<'forward' | 'back'>('forward')
 watch(openSection, (now, before) => {
   direction.value = sectionIndex(now) >= sectionIndex(before) ? 'forward' : 'back'
 })
-
-const onKeydown = (event: KeyboardEvent): void => {
-  if (event.key === 'Escape') closeSettings()
-}
-onMounted(() => window.addEventListener('keydown', onKeydown))
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 const { t } = useI18n()
 const app = useAppStore()
@@ -117,12 +111,7 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
 
 <template>
   <Transition name="settings-backdrop">
-    <div
-      v-if="settingsOpen"
-      class="settings-backdrop"
-      data-testid="settings-backdrop"
-      @click="closeSettings()"
-    />
+    <div v-if="settingsOpen" class="settings-backdrop" data-testid="settings-backdrop" />
   </Transition>
 
   <Transition name="settings-drawer">
@@ -199,6 +188,13 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
                     :hint="$t('settings.runInBackgroundHint')"
                     data-testid="setting-run-in-background"
                     @update:model-value="change('runInBackground', $event)"
+                  />
+                  <ToggleRow
+                    :model-value="settings.startWithWindows"
+                    :label="$t('settings.startWithWindows')"
+                    :hint="$t('settings.startWithWindowsHint')"
+                    data-testid="setting-start-with-windows"
+                    @update:model-value="change('startWithWindows', $event)"
                   />
                 </div>
               </v-card-text>
@@ -337,6 +333,11 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
                 <template v-if="updater.state.status === 'checking'">
                   {{ $t('settings.updates.checking') }}
                 </template>
+                <template v-else-if="updater.state.status === 'available'">
+                  {{
+                    $t('settings.updates.foundVersion', { version: updater.state.version ?? '' })
+                  }}
+                </template>
                 <template v-else-if="updater.state.status === 'downloading'">
                   {{
                     $t('settings.updates.downloading', {
@@ -366,6 +367,18 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
                 class="mt-2"
               />
               <v-btn
+                v-if="updater.state.status === 'available'"
+                color="primary"
+                variant="tonal"
+                prepend-icon="mdi-tray-arrow-down"
+                block
+                class="mt-3"
+                data-testid="settings-download-update"
+                @click="updater.download()"
+              >
+                {{ $t('settings.updates.download') }}
+              </v-btn>
+              <v-btn
                 v-if="updater.state.status === 'downloaded'"
                 color="primary"
                 variant="tonal"
@@ -375,7 +388,24 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
                 data-testid="settings-install-update"
                 @click="updater.install()"
               >
-                {{ $t('settings.updates.install') }}
+                {{ $t('settings.updates.updateNow') }}
+              </v-btn>
+            </SettingsSection>
+          </div>
+
+          <div v-else-if="openSection === 'reset'" class="d-flex flex-column ga-5">
+            <SettingsSection
+              icon="mdi-restore"
+              :title="$t('settings.tabs.reset')"
+              :description="$t('settings.resetAllHint')"
+            >
+              <v-btn
+                variant="tonal"
+                prepend-icon="mdi-restore"
+                data-testid="setting-reset-all"
+                @click="store.resetAll()"
+              >
+                {{ $t('settings.resetAll') }}
               </v-btn>
             </SettingsSection>
           </div>
@@ -395,6 +425,11 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
 .btn-icon-fi {
   margin-right: 8px;
   font-size: 18px;
+}
+
+/* "Idioma" and "Tema" labels: Vuetify's text-subtitle-2 utility is font-weight: 500 by default. */
+.text-subtitle-2 {
+  font-weight: 400;
 }
 
 .settings-backdrop {
@@ -467,7 +502,7 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
   color: var(--sidebar-text);
   font: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.5px;
   text-align: left;
   text-transform: uppercase;
@@ -482,6 +517,7 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
   align-items: center;
   justify-content: center;
   font-size: 20px;
+  font-weight: 400;
 }
 
 /* Pinned to the bottom of the tab list by the column's own flex (not a fixed/absolute position),
@@ -495,6 +531,7 @@ async function change<K extends keyof AppSettings>(key: K, value: AppSettings[K]
 
 .settings-tab .v-icon {
   color: var(--sidebar-text);
+  font-weight: 400;
   transition: var(--transition);
 }
 

@@ -27,6 +27,7 @@ export const settingSchemas = {
   sidebarPinned: z.boolean(),
   autoConnect: z.boolean(),
   runInBackground: z.boolean(),
+  startWithWindows: z.boolean(),
   onlineTranslator: z.boolean(),
   translatorUrl: httpUrl,
   signsIndexUrl: httpUrl,
@@ -39,17 +40,14 @@ export const settingSchemas = {
     .refine((value) => Number.isInteger(value * 2), 'Must be a multiple of 0.5'),
   signRegion: z.enum(REGION_CODES),
   autoInterpret: z.boolean(),
+  continuousPlayback: z.boolean(),
   interpretDelay: z
     .number()
     .min(INTERPRET_DELAY_RANGE.min)
     .max(INTERPRET_DELAY_RANGE.max)
     // Half seconds are the finest the settings page offers.
     .refine((value) => Number.isInteger(value * 2), 'Must be a multiple of 0.5'),
-  avatarPosition: z
-    .number()
-    .int()
-    .min(AVATAR_POSITION_RANGE.min)
-    .max(AVATAR_POSITION_RANGE.max),
+  avatarPosition: z.number().int().min(AVATAR_POSITION_RANGE.min).max(AVATAR_POSITION_RANGE.max),
   avatarScale: z.number().int().min(AVATAR_SCALE_RANGE.min).max(AVATAR_SCALE_RANGE.max),
   stageShowSlide: z.boolean(),
   dictionaryUrl: baseUrl,
@@ -89,6 +87,12 @@ export class SettingsService {
            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`
       )
       .run(key, JSON.stringify(parsed))
+    return this.getAll()
+  }
+
+  /** Forgets every stored value, so getAll() goes back to DEFAULT_SETTINGS. */
+  resetAll(): AppSettings {
+    this.db.exec('DELETE FROM settings')
     return this.getAll()
   }
 }

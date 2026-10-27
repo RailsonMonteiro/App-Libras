@@ -2,6 +2,7 @@
 import AppNavbar from '@/app/layout/AppNavbar.vue'
 import AppTitlebar from '@/app/layout/AppTitlebar.vue'
 import AvatarLayer from '@/modules/avatar/components/AvatarLayer.vue'
+import SignsCatalogNotice from '@/components/SignsCatalogNotice.vue'
 import SettingsDrawer from '@/modules/settings/SettingsDrawer.vue'
 import { useAppearance } from '@/composables/useAppearance'
 import { useOverlayStore } from '@/modules/overlay/stores/overlay.store'
@@ -19,6 +20,8 @@ void useUpdaterStore().init()
 
     <v-main class="bg-main main-container">
       <div class="content">
+        <SignsCatalogNotice />
+
         <!-- Only the page coming in fades; the one leaving is swapped out at once, not kept
              around and painted/composited at the same time as the new one - that overlap is what
              made switching tabs feel like it hitched on heavier pages (Projeção, Configurações).

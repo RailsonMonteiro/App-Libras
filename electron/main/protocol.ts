@@ -2,7 +2,9 @@ import { resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { net, protocol } from 'electron'
 import { SIGNS_PROXY_PATH, type RegionCode } from '../../src/modules/avatar/types/avatar.types'
+import { SLIDE_IMAGE_PROXY_PATH } from '../../src/modules/powerpoint/types/powerpoint.types'
 import type { SignCache } from '../services/avatar/SignCache'
+import type { PowerPointSlideImageCache } from '../services/powerpoint/PowerPointSlideImageCache'
 import { contentSecurityPolicy } from './security/csp'
 
 export const APP_SCHEME = 'app'
@@ -49,18 +51,34 @@ export function parseSignPath(pathname: string): { region: string; sign: string 
   }
 }
 
+/** Splits `/__pptx-slide__/<presentationId>/<index>.png` into its parts. */
+export function parseSlideImagePath(
+  pathname: string
+): { presentationId: string; index: number } | null {
+  if (!pathname.startsWith(SLIDE_IMAGE_PROXY_PATH)) return null
+  const match = /^([^/]+)\/(\d+)\.png$/.exec(pathname.slice(SLIDE_IMAGE_PROXY_PATH.length))
+  if (!match) return null
+  try {
+    return { presentationId: decodeURIComponent(match[1]!), index: Number(match[2]) }
+  } catch {
+    return null
+  }
+}
+
 export interface AppProtocolOptions {
   /** Folder with the built interface. Only used when `serveInterface` is on. */
   rendererDir: string
   /** Off while the Vite dev server provides the interface. The sign proxy is always on. */
   serveInterface: boolean
   signs: SignCache
+  slideImages: PowerPointSlideImageCache
 }
 
 export function handleAppProtocol({
   rendererDir,
   serveInterface,
-  signs
+  signs,
+  slideImages
 }: AppProtocolOptions): void {
   const notFound = (): Response => new Response('Not found', { status: 404 })
 
@@ -77,6 +95,22 @@ export function handleAppProtocol({
       return new Response(new Uint8Array(result.body), {
         status: 200,
         headers: { ...headers, 'content-type': 'application/octet-stream' }
+      })
+    }
+
+    const slideImage = parseSlideImagePath(url.pathname)
+    if (slideImage) {
+      const result = await slideImages.get(slideImage.presentationId, slideImage.index)
+      const headers = { 'access-control-allow-origin': '*' }
+      if (result.status === 502) {
+        // Visible in devtools' Network tab (the response body) without needing the main
+        // process's own console/log table - the only way to see *why* a render failed.
+        return new Response(result.message, { status: 502, headers })
+      }
+      if (result.status !== 200) return new Response(null, { status: result.status, headers })
+      return new Response(new Uint8Array(result.body), {
+        status: 200,
+        headers: { ...headers, 'content-type': 'image/png' }
       })
     }
 

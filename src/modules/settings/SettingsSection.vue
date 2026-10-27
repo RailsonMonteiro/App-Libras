@@ -98,7 +98,7 @@ const imageSrc = computed(() => props.icon.slice(4))
 .section-title {
   margin: 0;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 38px;
 }
 

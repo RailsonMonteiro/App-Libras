@@ -5,6 +5,7 @@ import {
   type LouvorJAApi,
   type OverlayCommand,
   type OverlayState,
+  type PowerPointPushEvent,
   type UpdaterState
 } from '../../src/types/ipc'
 import type { AppSettings } from '../../src/types/settings'
@@ -24,6 +25,7 @@ const api: LouvorJAApi = {
   settings: {
     getAll: () => ipcRenderer.invoke(IpcChannels.settingsGetAll),
     set: (key, value) => ipcRenderer.invoke(IpcChannels.settingsSet, { key, value }),
+    resetAll: () => ipcRenderer.invoke(IpcChannels.settingsResetAll),
     onChange: (listener) => subscribe<AppSettings>(IpcChannels.settingsChanged, listener)
   },
   window: {
@@ -45,6 +47,13 @@ const api: LouvorJAApi = {
       ipcRenderer.on(IpcChannels.louvorjaEvent, handler)
       return () => ipcRenderer.removeListener(IpcChannels.louvorjaEvent, handler)
     }
+  },
+  powerpoint: {
+    getState: () => ipcRenderer.invoke(IpcChannels.powerpointGetState),
+    control: (action) => ipcRenderer.invoke(IpcChannels.powerpointControl, action),
+    pickFile: () => ipcRenderer.invoke(IpcChannels.powerpointPickFile),
+    loadFile: (path) => ipcRenderer.invoke(IpcChannels.powerpointLoadFile, path),
+    onEvent: (listener) => subscribe<PowerPointPushEvent>(IpcChannels.powerpointEvent, listener)
   },
   libras: {
     translate: (text) => ipcRenderer.invoke(IpcChannels.librasTranslate, text),
@@ -71,6 +80,7 @@ const api: LouvorJAApi = {
   updater: {
     getState: () => ipcRenderer.invoke(IpcChannels.updaterGetState),
     check: () => ipcRenderer.invoke(IpcChannels.updaterCheck),
+    download: () => ipcRenderer.invoke(IpcChannels.updaterDownload),
     install: () => ipcRenderer.invoke(IpcChannels.updaterInstall),
     onStateChange: (listener) => subscribe<UpdaterState>(IpcChannels.updaterStateChanged, listener)
   }

@@ -8,11 +8,14 @@ import { SettingsService } from '../services/SettingsService'
 import { UpdaterService } from '../services/UpdaterService'
 import { LibrasService } from '../services/libras/LibrasService'
 import { LouvorJAService } from '../services/louvorja/LouvorJAService'
+import { PowerPointService } from '../services/powerpoint/PowerPointService'
+import { PowerPointSlideImageCache } from '../services/powerpoint/PowerPointSlideImageCache'
 import { registerIpc } from './ipc'
 import { registerAvatarIpc } from './ipc/avatar'
 import { registerLibrasIpc } from './ipc/libras'
 import { registerLouvorJAIpc } from './ipc/louvorja'
 import { registerOverlayIpc } from './ipc/overlay'
+import { registerPowerPointIpc } from './ipc/powerpoint'
 import { registerUpdaterIpc } from './ipc/updater'
 import { installAppMenu } from './menus/appMenu'
 import { handleAppProtocol, registerAppScheme } from './protocol'
@@ -58,10 +61,19 @@ if (!app.requestSingleInstanceLock()) {
       dir: join(app.getPath('userData'), 'signs'),
       dictionaryUrl: () => settings.getAll().dictionaryUrl
     })
-    handleAppProtocol({ rendererDir, serveInterface: !devServerUrl, signs })
+    const pptxSlideImages = new PowerPointSlideImageCache({ logs })
+    handleAppProtocol({
+      rendererDir,
+      serveInterface: !devServerUrl,
+      signs,
+      slideImages: pptxSlideImages
+    })
 
     const louvorja = new LouvorJAService({ db, logs })
     louvorja.prune()
+
+    const powerpoint = new PowerPointService({ db, logs, slideImages: pptxSlideImages })
+    powerpoint.prune()
 
     const libras = new LibrasService({ db, logs, settings: () => settings.getAll() })
     libras.prune()
@@ -69,7 +81,10 @@ if (!app.requestSingleInstanceLock()) {
     registerIpc({
       settings,
       logs,
-      onSettingsChanged: (updated) => syncTray(updated.runInBackground),
+      onSettingsChanged: (updated) => {
+        syncTray(updated.runInBackground)
+        syncAutoLaunch(updated.startWithWindows)
+      },
       onHideToTray: () => {
         if (!hiddenToTrayOnce) {
           hiddenToTrayOnce = true
@@ -80,13 +95,18 @@ if (!app.requestSingleInstanceLock()) {
     registerLibrasIpc(libras)
     registerAvatarIpc(signs)
     registerLouvorJAIpc(louvorja)
+    registerPowerPointIpc(powerpoint)
     const overlay = new OverlayController()
     registerOverlayIpc(overlay)
     const updater = new UpdaterService(logs)
     registerUpdaterIpc(updater)
     installAppMenu()
 
-    let mainWindow = createMainWindow()
+    // "Iniciar com o Windows" (Configurações) relaunches the app with this flag - set once below,
+    // via setLoginItemSettings - instead of showing the window right away. wasOpenedAtLogin only
+    // exists on macOS, so this is how Windows/Linux tell a login launch apart from a normal one.
+    const startedHidden = process.argv.includes('--hidden')
+    let mainWindow = createMainWindow(startedHidden)
     let hiddenToTrayOnce = false
     let tray: Tray | null = null
 
@@ -100,7 +120,16 @@ if (!app.requestSingleInstanceLock()) {
         tray = null
       }
     }
-    syncTray(settings.getAll().runInBackground)
+    // Started hidden from a login launch: the tray icon is the only way back to the window, so
+    // it is there from the start even if "Executar em segundo plano" itself is off (that setting
+    // only decides what minimizing does once the window is actually open).
+    syncTray(settings.getAll().runInBackground || startedHidden)
+
+    /** Registers (or removes) the app from the OS's own list of programs it starts at login. */
+    function syncAutoLaunch(enabled: boolean): void {
+      app.setLoginItemSettings({ openAtLogin: enabled, args: enabled ? ['--hidden'] : [] })
+    }
+    syncAutoLaunch(settings.getAll().startWithWindows)
 
     // The overlay has no reason to outlive the main window (and would keep the app running).
     // Minimizing is what leaves the app running in the tray now (see ipc/index.ts) - the titlebar
@@ -136,6 +165,7 @@ if (!app.requestSingleInstanceLock()) {
     app.on('will-quit', () => {
       tray?.destroy()
       louvorja.dispose()
+      powerpoint.dispose()
       db.close()
     })
   })

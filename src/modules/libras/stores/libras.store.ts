@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, shallowReactive, watch } from 'vue'
-import { useLouvorJAStore } from '@/modules/louvorja/stores/louvorja.store'
+import { useActivePresentationSource } from '@/composables/useActivePresentationSource'
 import { api } from '@/services/api'
 import { textKey } from '../core/GlossParser'
 import type { CatalogStatus, TranslationResult } from '../types/libras.types'
@@ -70,7 +70,7 @@ export const useLibrasStore = defineStore('libras', () => {
   /** Loads the catalog status and keeps the live slide translated ahead of time. */
   async function init(): Promise<void> {
     await loadCatalog()
-    const louvorja = useLouvorJAStore()
+    const louvorja = useActivePresentationSource()
     // The current slide first, then the one that comes next, so it is ready when it appears.
     watch(
       () => [louvorja.currentSlide?.text, louvorja.currentSlide?.nextText] as const,

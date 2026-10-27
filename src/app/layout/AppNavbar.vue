@@ -23,8 +23,8 @@ const settingsItem = navItems.find((item) => item.name === 'settings')!
 
 // Only once there is something to act on - not while still checking, and not when it turns out
 // there was nothing new.
-const updateAvailable = computed(
-  () => updater.state.status === 'downloading' || updater.state.status === 'downloaded'
+const updateAvailable = computed(() =>
+  ['available', 'downloading', 'downloaded'].includes(updater.state.status)
 )
 const updateDialogOpen = ref(false)
 </script>
@@ -133,14 +133,14 @@ const updateDialogOpen = ref(false)
     color: var(--sidebar-text);
     font: inherit;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 400;
     text-decoration: none;
     cursor: pointer;
     transition: var(--transition);
 
     &.main-item {
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 400;
     }
 
     &.icon-only {

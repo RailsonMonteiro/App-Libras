@@ -3,12 +3,12 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAvatarStore } from '@/modules/avatar/stores/avatar.store'
 import { useLibrasStore } from '@/modules/libras/stores/libras.store'
-import { useLouvorJAStore } from '@/modules/louvorja/stores/louvorja.store'
+import { useActivePresentationSource } from '@/composables/useActivePresentationSource'
 
 const { t } = useI18n()
 const avatar = useAvatarStore()
 const libras = useLibrasStore()
-const louvorja = useLouvorJAStore()
+const louvorja = useActivePresentationSource()
 
 type StepState = 'idle' | 'working' | 'done' | 'warning' | 'error'
 interface Step {

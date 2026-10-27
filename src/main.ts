@@ -11,6 +11,7 @@ import { removeSplash } from '@/app/splash'
 import { useAvatarStore } from '@/modules/avatar/stores/avatar.store'
 import { useLibrasStore } from '@/modules/libras/stores/libras.store'
 import { useLouvorJAStore } from '@/modules/louvorja/stores/louvorja.store'
+import { usePowerPointStore } from '@/modules/powerpoint/stores/powerpoint.store'
 import { useSettingsStore } from '@/stores/settings.store'
 
 /** The overlay window loads this same page with this route; it shows only the avatar. */
@@ -20,7 +21,11 @@ const isOverlay = window.location.hash.startsWith('#/overlay')
 async function startStores(pinia: ReturnType<typeof createPinia>): Promise<void> {
   const settings = useSettingsStore(pinia)
   settings.watchChanges()
-  await Promise.all([settings.load(), useLouvorJAStore(pinia).init()])
+  await Promise.all([
+    settings.load(),
+    useLouvorJAStore(pinia).init(),
+    usePowerPointStore(pinia).init()
+  ])
   // The translator watches the live slide, so it needs the integration state loaded first.
   await useLibrasStore(pinia).init()
   // The avatar follows the translated slides, so it comes after the translator.
