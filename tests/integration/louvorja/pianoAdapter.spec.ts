@@ -1,4 +1,4 @@
-import type { AddressInfo } from 'node:net'
+import { createServer, type AddressInfo, type Socket } from 'node:net'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { WebSocketServer, type WebSocket } from 'ws'
 import { LouvorJAPianoAdapter } from '../../../electron/services/louvorja/adapters/LouvorJAPianoAdapter'
@@ -95,5 +95,41 @@ describe('LouvorJAPianoAdapter', () => {
   it('fails to connect when nothing is listening', async () => {
     const adapter = adapterFor({ host: '127.0.0.1', port: 1 })
     await expect(adapter.connect()).rejects.toMatchObject({ code: 'unreachable' })
+  })
+
+  // LouvorJA's IP changed: the old address answers nothing. After the timeout the socket used to
+  // keep connecting with no 'error' listener left, and its later error was thrown - Electron's
+  // "A JavaScript error occurred in the main process" dialog.
+  it('gives up on a silent address for good, without a stray error afterwards', async () => {
+    const accepted: Socket[] = []
+    const dropped = vi.fn()
+    // Accepts TCP and reads it (so it notices the other side going), but never answers.
+    const silent = createServer((socket) => {
+      accepted.push(socket)
+      socket.on('error', () => undefined)
+      socket.on('close', dropped)
+      socket.resume()
+    })
+    await new Promise<void>((resolve) => silent.listen(0, '127.0.0.1', resolve))
+    const { port } = silent.address() as AddressInfo
+    const uncaught = vi.fn()
+    process.on('uncaughtException', uncaught)
+
+    try {
+      const adapter = new LouvorJAPianoAdapter(
+        { host: '127.0.0.1', port, token: '' },
+        { connectTimeoutMs: 200 }
+      )
+      await expect(adapter.connect()).rejects.toMatchObject({ code: 'timeout' })
+
+      // The socket was dropped, not left trying: the server sees it go.
+      await vi.waitFor(() => expect(dropped).toHaveBeenCalled())
+      await new Promise((resolve) => setTimeout(resolve, 100))
+      expect(uncaught).not.toHaveBeenCalled()
+    } finally {
+      process.off('uncaughtException', uncaught)
+      accepted.forEach((socket) => socket.destroy())
+      await new Promise<void>((resolve) => silent.close(() => resolve()))
+    }
   })
 })

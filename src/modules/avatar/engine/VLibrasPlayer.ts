@@ -72,12 +72,12 @@ export class VLibrasPlayer {
   }
 
   /**
-   * The player can write the word it is signing above the avatar's head; this app always keeps
-   * that off (not a setting - nothing here ever turns it on). Without this, the player defaults
-   * to showing it, which is what the whole call exists to prevent.
+   * The player can write the word it is signing as a caption with the avatar (the "Legenda"
+   * setting). It defaults to showing it, so this is always sent - on or off - whenever the
+   * player (re)starts.
    */
-  hideCaptions(): void {
-    this.send('setSubtitlesState', 0)
+  setCaptions(on: boolean): void {
+    this.send('setSubtitlesState', on ? 1 : 0)
   }
 
   // --- events coming from the page ---

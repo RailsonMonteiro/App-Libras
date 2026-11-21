@@ -66,7 +66,6 @@ onBeforeUnmount(() => {
       <div class="mac-title-center d-flex align-center justify-center">
         <span class="title-text">{{ $t('app.name') }}</span>
         <span class="version-text">v{{ app.info?.version }}</span>
-        <span class="beta-badge">Beta</span>
       </div>
     </template>
 
@@ -75,7 +74,6 @@ onBeforeUnmount(() => {
         <img :src="logoUrl" height="16" class="mr-2 logo" alt="" />
         <span class="title-text">{{ $t('app.name') }}</span>
         <span class="version-text">v{{ app.info?.version }}</span>
-        <span class="beta-badge">Beta</span>
       </div>
 
       <div class="window-controls d-flex h-100">
@@ -148,19 +146,6 @@ onBeforeUnmount(() => {
   font-weight: 500;
   letter-spacing: 0.5px;
   opacity: 0.4;
-}
-
-/* Same red as the close button (.close-btn:hover below) - already this titlebar's warning tone. */
-.beta-badge {
-  margin-left: 6px;
-  padding: 1px 6px;
-  border-radius: 999px;
-  background: #e81123;
-  color: #fff;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  line-height: 1.5;
 }
 
 .control-btn {

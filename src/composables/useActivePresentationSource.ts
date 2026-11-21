@@ -1,14 +1,15 @@
 import { computed, reactive } from 'vue'
 import { usePowerPointStore } from '@/modules/powerpoint/stores/powerpoint.store'
 import { useLouvorJAStore } from '@/modules/louvorja/stores/louvorja.store'
+import { useSpeechStore } from '@/modules/speech/stores/speech.store'
+
+export type PresentationSource = 'speech' | 'louvorja' | 'powerpoint'
 
 /**
- * Whichever of the two independent slide sources (LouvorJA, PowerPoint) is currently live.
- * LouvorJA always wins when both have an open presentation at once - PowerPoint is only
- * followed when LouvorJA has none (see docs/decisoes.md).
- *
- * `.source` says which one is active - used by OverlayApp.vue to decide whether it must paint the
- * PowerPoint slide itself (that source has no window of its own to be seen under the avatar).
+ * Whichever of the independent sources of text (microphone, LouvorJA, PowerPoint) is currently
+ * live. The microphone wins while it is on - someone turned it on on purpose, right now. Then
+ * LouvorJA, whenever it has an open presentation; PowerPoint is only followed when neither of the
+ * other two has anything (see docs/decisoes.md).
  *
  * Wrapped in reactive() so `.presentation`/`.currentSlide`/`.recentSlides` auto-unwrap on access
  * exactly like a Pinia store's own properties do (Pinia wraps setup stores in reactive() too) -
@@ -18,10 +19,14 @@ import { useLouvorJAStore } from '@/modules/louvorja/stores/louvorja.store'
 export function useActivePresentationSource() {
   const louvorja = useLouvorJAStore()
   const powerpoint = usePowerPointStore()
+  const speech = useSpeechStore()
 
-  const active = computed(() => (louvorja.presentation !== null ? louvorja : powerpoint))
-  const source = computed<'louvorja' | 'powerpoint'>(() =>
-    louvorja.presentation !== null ? 'louvorja' : 'powerpoint'
+  const source = computed<PresentationSource>(() => {
+    if (speech.presentation !== null) return 'speech'
+    return louvorja.presentation !== null ? 'louvorja' : 'powerpoint'
+  })
+  const active = computed(() =>
+    source.value === 'speech' ? speech : source.value === 'louvorja' ? louvorja : powerpoint
   )
 
   return reactive({

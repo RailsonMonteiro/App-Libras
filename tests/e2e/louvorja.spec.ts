@@ -111,7 +111,7 @@ test('keeps retrying while LouvorJA is closed and recovers when it opens', async
   await connectThroughUi(page, { host, port })
 
   await expect(state(page)).toHaveText('Reconectando…')
-  await expect(page.getByTestId('connection-error')).toContainText('Não foi possível alcançar')
+  await expect(page.getByTestId('connection-error')).toContainText('Não foi possível conectar ao LouvorJA')
 
   server = await startMockServer({ port }) // LouvorJA is opened
   server.playSong(['LETRA'])

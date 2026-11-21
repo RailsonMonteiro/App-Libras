@@ -22,7 +22,8 @@ describe('VLibrasPlayer commands', () => {
     player.play('  DEUS AMOR ')
     player.setSpeed(1.5)
     player.setAvatar('hosana')
-    player.hideCaptions()
+    player.setCaptions(false)
+    player.setCaptions(true)
     player.pause()
     player.resume()
     player.stop()
@@ -38,6 +39,7 @@ describe('VLibrasPlayer commands', () => {
       { type: 'unity', object: 'PlayerManager', method: 'setSlider', params: 1.5 },
       { type: 'unity', object: 'PlayerManager', method: 'Change', params: 'hosana' },
       { type: 'unity', object: 'PlayerManager', method: 'setSubtitlesState', params: 0 },
+      { type: 'unity', object: 'PlayerManager', method: 'setSubtitlesState', params: 1 },
       { type: 'unity', object: 'PlayerManager', method: 'setPauseState', params: 1 },
       { type: 'unity', object: 'PlayerManager', method: 'setPauseState', params: 0 },
       { type: 'unity', object: 'PlayerManager', method: 'stopAll', params: undefined }

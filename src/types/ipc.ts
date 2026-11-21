@@ -23,8 +23,13 @@ export const IpcChannels = {
   louvorjaRemoveConnection: 'louvorja:remove-connection',
   powerpointGetState: 'powerpoint:get-state',
   powerpointControl: 'powerpoint:control',
-  powerpointPickFile: 'powerpoint:pick-file',
-  powerpointLoadFile: 'powerpoint:load-file',
+  powerpointListOpen: 'powerpoint:list-open',
+  powerpointLink: 'powerpoint:link',
+  powerpointBindRemote: 'powerpoint:bind-remote',
+  speechGetState: 'speech:get-state',
+  speechStart: 'speech:start',
+  speechStop: 'speech:stop',
+  speechOpenSettings: 'speech:open-settings',
   librasTranslate: 'libras:translate',
   librasCatalogStatus: 'libras:catalog-status',
   librasCatalogRefresh: 'libras:catalog-refresh',
@@ -46,6 +51,8 @@ export const IpcChannels = {
   windowMaximizedChanged: 'window:maximized-changed',
   louvorjaEvent: 'louvorja:event',
   powerpointEvent: 'powerpoint:event',
+  powerpointRemoteKey: 'powerpoint:remote-key',
+  speechEvent: 'speech:event',
   settingsChanged: 'settings:changed',
   overlayStateChanged: 'overlay:state-changed',
   overlayCommandEvent: 'overlay:command-event',
@@ -153,17 +160,65 @@ export interface UpcomingSlide {
   text: string
 }
 
+/** A presentation open in the person's own PowerPoint, offered for linking. */
+export interface OpenPresentation {
+  /** Saved file path, or the in-memory name of a deck never saved - the id used everywhere. */
+  path: string
+  /** What PowerPoint shows in its own title bar. */
+  name: string
+}
+
+/** A key pressed while binding the presenter remote, with the device it came from. */
+export interface RemoteKey {
+  device: string
+  /** Accelerator-style name: "PageDown", "Right", "B", "F5"... */
+  key: string
+}
+
 export interface PowerPointState {
   presentation: Presentation | null
   currentSlide: Slide | null
   recentSlides: Slide[]
   upcomingSlides: UpcomingSlide[]
+  /** The presentation linked to the app (see OpenPresentation.path), if any. */
+  linkedPath: string | null
+  /** Reading the text inside slide images (OCR) in progress, if any. */
+  ocr: OcrProgress | null
 }
+
+export interface OcrProgress {
+  done: number
+  total: number
+}
+
+/** The microphone source (see electron/services/speech): off, starting, listening, or stopped by
+ *  an error. */
+export type SpeechStatus = 'idle' | 'starting' | 'listening' | 'error'
+
+export interface SpeechError {
+  /** privacy: "Reconhecimento de fala online" is off in Windows; microphone: none, or blocked. */
+  code: 'privacy' | 'microphone' | 'other'
+  message: string | null
+}
+
+export interface SpeechState {
+  status: SpeechStatus
+  error: SpeechError | null
+  presentation: Presentation | null
+  currentSlide: Slide | null
+  recentSlides: Slide[]
+}
+
+export type SpeechPushEvent =
+  | { kind: 'status'; status: SpeechStatus; error: SpeechError | null }
+  | { kind: 'presentation'; presentation: Presentation | null }
+  | { kind: 'slide'; slide: Slide }
 
 export type PowerPointPushEvent =
   | { kind: 'presentation'; presentation: Presentation | null }
   | { kind: 'slide'; slide: Slide }
   | { kind: 'upcoming'; slides: UpcomingSlide[] }
+  | { kind: 'ocr'; progress: OcrProgress | null }
 
 /** API exposed to the renderer as `window.louvorja` through the preload script. */
 export interface LouvorJAApi {
@@ -195,17 +250,30 @@ export interface LouvorJAApi {
     /** Subscribes to status, presentation and slide events. Returns the unsubscribe function. */
     onEvent(listener: (event: IntegrationPushEvent) => void): () => void
   }
-  /** A PowerPoint file read and driven entirely by this app - no Microsoft PowerPoint involved.
-   *  Independent from `integration` above - its own source. */
+  /** A presentation open in the person's own PowerPoint, linked to the app and driven by it (and
+   *  by the presenter remote). Independent from `integration` above - its own source. */
   powerpoint: {
     getState(): Promise<PowerPointState>
-    /** Moves between slides of the loaded file (ignored while none is loaded). */
+    /** Drives the linked presentation's slide show (ignored while none is linked). */
     control(action: PowerPointAction): Promise<void>
-    /** Opens the native "Open file" dialog, filtered to PowerPoint files. `null` if cancelled. */
-    pickFile(): Promise<string | null>
-    /** Reads and parses this .pptx file - no presentation starts yet (see control('start')). */
-    loadFile(path: string): Promise<void>
+    /** The presentations open in PowerPoint right now. */
+    listOpen(): Promise<OpenPresentation[]>
+    /** Links one of them (see listOpen) and reads its slides. Rejects if it is no longer open. */
+    link(path: string): Promise<void>
+    /** While on, key presses (from any device) are reported through onRemoteKey instead of
+     *  driving the slide show - pressing a remote's button to bind it (see PresenterKeysDialog). */
+    bindRemote(on: boolean): Promise<void>
+    onRemoteKey(listener: (event: RemoteKey) => void): () => void
     onEvent(listener: (event: PowerPointPushEvent) => void): () => void
+  }
+  /** The microphone: what is said is recognized (Windows speech recognition) and signed. */
+  speech: {
+    getState(): Promise<SpeechState>
+    start(): Promise<void>
+    stop(): Promise<void>
+    /** Opens Windows' speech privacy settings ("Reconhecimento de fala online"). */
+    openSettings(kind: 'privacy' | 'microphone'): Promise<void>
+    onEvent(listener: (event: SpeechPushEvent) => void): () => void
   }
   /** Portuguese text to Libras gloss. */
   libras: {

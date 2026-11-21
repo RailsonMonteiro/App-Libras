@@ -146,7 +146,15 @@
       "closed": "The connection to LouvorJA was closed.",
       "httpStatus": "LouvorJA answered with an error (HTTP {detail}).",
       "unauthorized": "LouvorJA refused the token. Check the token shown in the Transmitir tab.",
-      "incompatible": "The address answered, but it does not look like the LouvorJA transmission server. Check the address and port."
+      "incompatible": "The address answered, but it does not look like the LouvorJA transmission server. Check the address and port.",
+      "help": {
+        "title": "Could not connect to LouvorJA ({endpoint}).",
+        "intro": "In LouvorJA, open the Transmitir tab and check:",
+        "server": "that the server is on (\"Iniciar Servidor\" button);",
+        "address": "that the address (IP) and port shown there match the ones entered here - the IP can change when the computer switches networks or restarts;",
+        "token": "the token shown there, if LouvorJA runs on another computer.",
+        "tip": "Tip: LouvorJA's \"Copiar Link\" button copies address, port and token at once - paste it into any field of the connection form."
+      }
     },
     "info": {
       "title": "Connection status",
@@ -165,11 +173,30 @@
     "noUpcoming": "No upcoming slides.",
     "position": "Slide {n} of {total}",
     "navigation": "Navigation",
-    "noFileLinked": "No file linked",
-    "fileLinked": "File linked",
-    "linkFile": "Link a PowerPoint presentation",
-    "startPresentation": "Start presentation",
-    "endPresentation": "End presentation",
+    "selectPresentation": "Select a presentation",
+    "noOpenPresentations": "No presentation open in PowerPoint",
+    "linkError": "This presentation could not be read. Is it still open in PowerPoint?",
+    "refreshOpen": "Refresh open presentations",
+    "ocrProgress": "Reading text from images… {done}/{total}",
+    "startPresentation": "Start",
+    "endPresentation": "End",
+    "presenter": {
+      "open": "Set up presenter remote",
+      "title": "Presenter remote",
+      "hint": "Click an action, then press the matching button on your remote. Only the linked remote drives the presentation; the keyboard does not.",
+      "pressKey": "Press it on the remote…",
+      "escAlways": "The remote's Esc always ends it; the bound key is an extra shortcut",
+      "device": "Remote",
+      "noDevice": "No remote linked",
+      "identify": "Identify",
+      "pressAny": "Press any button on the remote…",
+      "unlinkDevice": "Unlink remote",
+      "deviceHint": "Binding a key also links the device it was pressed on.",
+      "none": "None",
+      "space": "Space",
+      "clear": "Remove key",
+      "restore": "Restore defaults"
+    },
     "previous": "Back",
     "next": "Next",
     "presentation": "Presentation: {title}",
@@ -221,6 +248,21 @@
     "openSettings": "Open settings",
     "error": "Could not translate."
   },
+  "speech": {
+    "title": "Microphone",
+    "hint": "What is said into Windows' default microphone is recognized and signed by the avatar, phrase by phrase. While on, it takes priority over LouvorJA and the slides.",
+    "start": "Listen to microphone",
+    "stop": "Stop listening",
+    "listening": "Listening",
+    "lastPhrase": "Last phrase recognized",
+    "waiting": "Waiting for someone to speak…",
+    "openSettings": "Open Windows settings",
+    "errors": {
+      "privacy": "Turn on \"Online speech recognition\" in Windows' Speech settings (needs internet) and try again.",
+      "microphone": "No microphone found, or microphone access is blocked for desktop apps.",
+      "other": "Windows speech recognition could not be used."
+    }
+  },
   "projection": {
     "stage": "How it is being projected",
     "controls": "Controls",
@@ -250,6 +292,7 @@
     "autoInterpret": "Interpret every slide automatically",
     "showSlide": "Show the slide in the background",
     "continuousPlayback": "Continuous playback",
+    "captions": "Translation captions",
     "position": "Avatar position",
     "size": "Size",
     "sync": {

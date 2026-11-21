@@ -146,7 +146,15 @@
       "closed": "Se cerró la conexión con LouvorJA.",
       "httpStatus": "LouvorJA respondió con un error (HTTP {detail}).",
       "unauthorized": "LouvorJA rechazó el token. Revise el token que muestra la pestaña Transmitir.",
-      "incompatible": "La dirección respondió, pero no parece ser el servidor de transmisión de LouvorJA. Revise la dirección y el puerto."
+      "incompatible": "La dirección respondió, pero no parece ser el servidor de transmisión de LouvorJA. Revise la dirección y el puerto.",
+      "help": {
+        "title": "No se pudo conectar a LouvorJA ({endpoint}).",
+        "intro": "En LouvorJA, abra la pestaña Transmitir y revise:",
+        "server": "que el servidor esté encendido (botón \"Iniciar Servidor\");",
+        "address": "que la dirección (IP) y el puerto que aparecen allí sean los mismos indicados aquí - la IP puede cambiar cuando la computadora cambia de red o se reinicia;",
+        "token": "el token que aparece allí, si LouvorJA está en otra computadora.",
+        "tip": "Consejo: el botón \"Copiar Link\" de LouvorJA copia dirección, puerto y token a la vez - péguelo en cualquier campo del formulario de conexión."
+      }
     },
     "info": {
       "title": "Estado de la conexión",
@@ -165,11 +173,30 @@
     "noUpcoming": "No hay próximas diapositivas.",
     "position": "Diapositiva {n} de {total}",
     "navigation": "Navegación",
-    "noFileLinked": "Ningún archivo vinculado",
-    "fileLinked": "Archivo vinculado",
-    "linkFile": "Vincular presentación de PowerPoint",
-    "startPresentation": "Iniciar presentación",
-    "endPresentation": "Finalizar presentación",
+    "selectPresentation": "Seleccione una presentación",
+    "noOpenPresentations": "Ninguna presentación abierta en PowerPoint",
+    "linkError": "No se pudo leer esta presentación. ¿Sigue abierta en PowerPoint?",
+    "refreshOpen": "Actualizar presentaciones abiertas",
+    "ocrProgress": "Leyendo el texto de las imágenes… {done}/{total}",
+    "startPresentation": "Iniciar",
+    "endPresentation": "Finalizar",
+    "presenter": {
+      "open": "Configurar presentador de diapositivas",
+      "title": "Presentador de diapositivas",
+      "hint": "Haz clic en una acción y pulsa el botón correspondiente de tu presentador. Solo el presentador vinculado maneja la presentación; el teclado no.",
+      "pressKey": "Púlsalo en el presentador…",
+      "escAlways": "Esc del presentador siempre la finaliza; la tecla vinculada es un atajo más",
+      "device": "Presentador",
+      "noDevice": "Ningún presentador vinculado",
+      "identify": "Identificar",
+      "pressAny": "Pulsa cualquier botón del presentador…",
+      "unlinkDevice": "Desvincular presentador",
+      "deviceHint": "Vincular una tecla también vincula el aparato en que se pulsó.",
+      "none": "Ninguna",
+      "space": "Espacio",
+      "clear": "Quitar tecla",
+      "restore": "Restaurar predeterminado"
+    },
     "previous": "Atrás",
     "next": "Avanzar",
     "presentation": "Presentación: {title}",
@@ -221,6 +248,21 @@
     "openSettings": "Abrir configuración",
     "error": "No se pudo traducir."
   },
+  "speech": {
+    "title": "Micrófono",
+    "hint": "Lo que se dice en el micrófono predeterminado de Windows es reconocido y señado por el avatar, frase por frase. Mientras está activo, tiene prioridad sobre LouvorJA y las diapositivas.",
+    "start": "Escuchar micrófono",
+    "stop": "Dejar de escuchar",
+    "listening": "Escuchando",
+    "lastPhrase": "Última frase reconocida",
+    "waiting": "Esperando que alguien hable…",
+    "openSettings": "Abrir la configuración de Windows",
+    "errors": {
+      "privacy": "Activa \"Reconocimiento de voz en línea\" en la configuración de Voz de Windows (necesita internet) e inténtalo de nuevo.",
+      "microphone": "No se encontró ningún micrófono, o el acceso al micrófono está bloqueado para aplicaciones de escritorio.",
+      "other": "No se pudo usar el reconocimiento de voz de Windows."
+    }
+  },
   "projection": {
     "stage": "Cómo se está proyectando",
     "controls": "Controles",
@@ -250,6 +292,7 @@
     "autoInterpret": "Interpretar cada diapositiva automáticamente",
     "showSlide": "Mostrar la diapositiva al fondo",
     "continuousPlayback": "Reproducción continua",
+    "captions": "Subtítulos de las traducciones",
     "position": "Posición del avatar",
     "size": "Tamaño",
     "sync": {

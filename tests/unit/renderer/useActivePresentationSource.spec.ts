@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { useActivePresentationSource } from '@/composables/useActivePresentationSource'
 import { useLouvorJAStore } from '@/modules/louvorja/stores/louvorja.store'
 import { usePowerPointStore } from '@/modules/powerpoint/stores/powerpoint.store'
+import { useSpeechStore } from '@/modules/speech/stores/speech.store'
 import type { Slide } from '@/types/presentation'
 
 const slide = (id: string, text = id): Slide => ({
@@ -68,5 +69,21 @@ describe('useActivePresentationSource', () => {
     expect(active.presentation?.id).toBe('pp')
     expect(active.currentSlide?.text).toBe('DO POWERPOINT')
     expect(active.source).toBe('powerpoint')
+  })
+
+  it('the microphone wins over both while it is on', () => {
+    const louvorja = useLouvorJAStore()
+    const speech = useSpeechStore()
+    louvorja.presentation = { id: 'lj', title: 'Culto', startedAt: 'x' }
+    louvorja.currentSlide = slide('ljSlide', 'DO LOUVORJA')
+    speech.presentation = { id: 'mic', title: '', startedAt: 'x' }
+    speech.currentSlide = slide('micSlide', 'FALADO')
+
+    const active = useActivePresentationSource()
+    expect(active.currentSlide?.text).toBe('FALADO')
+    expect(active.source).toBe('speech')
+
+    speech.presentation = null
+    expect(active.source).toBe('louvorja')
   })
 })

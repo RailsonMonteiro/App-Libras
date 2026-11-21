@@ -25,11 +25,14 @@ function setup(state: Partial<PowerPointState> = {}) {
       currentSlide: null,
       recentSlides: [],
       upcomingSlides: [],
+      linkedPath: null,
       ...state
     }),
     control: vi.fn().mockResolvedValue(undefined),
-    pickFile: vi.fn().mockResolvedValue(null),
-    loadFile: vi.fn().mockResolvedValue(undefined),
+    listOpen: vi.fn().mockResolvedValue([]),
+    link: vi.fn().mockResolvedValue(undefined),
+    bindRemote: vi.fn().mockResolvedValue(undefined),
+    onRemoteKey: vi.fn().mockReturnValue(() => undefined),
     onEvent: vi.fn().mockImplementation((listener) => {
       push = listener
       return unsubscribe
@@ -120,23 +123,58 @@ describe('powerpoint store', () => {
     expect(unsubscribe).toHaveBeenCalled()
   })
 
-  it('picks and loads the chosen file, remembering it as the linked file', async () => {
-    const { store, powerpoint } = setup()
-    powerpoint.pickFile.mockResolvedValue('C:\\slides\\culto.pptx')
-
-    await store.linkFile()
-
-    expect(powerpoint.loadFile).toHaveBeenCalledWith('C:\\slides\\culto.pptx')
-    expect(store.linkedFile).toBe('C:\\slides\\culto.pptx')
+  it('follows the progress of reading slide images', async () => {
+    const { store, push } = setup()
+    await store.init()
+    push({ kind: 'ocr', progress: { done: 2, total: 14 } })
+    expect(store.ocr).toEqual({ done: 2, total: 14 })
+    push({ kind: 'ocr', progress: null })
+    expect(store.ocr).toBeNull()
   })
 
-  it('does nothing when the file picker is cancelled', async () => {
+  it('loads the linked presentation from the snapshot', async () => {
+    const { store } = setup({ linkedPath: 'C:\\slides\\culto.pptx' })
+    await store.init()
+    expect(store.linkedPath).toBe('C:\\slides\\culto.pptx')
+  })
+
+  it('lists the presentations open in PowerPoint', async () => {
     const { store, powerpoint } = setup()
-    powerpoint.pickFile.mockResolvedValue(null)
+    powerpoint.listOpen.mockResolvedValue([{ path: 'C:\\culto.pptx', name: 'culto.pptx' }])
 
-    await store.linkFile()
+    await store.refreshOpen()
 
-    expect(powerpoint.loadFile).not.toHaveBeenCalled()
-    expect(store.linkedFile).toBeNull()
+    expect(store.openPresentations).toEqual([{ path: 'C:\\culto.pptx', name: 'culto.pptx' }])
+    expect(store.loadingOpen).toBe(false)
+  })
+
+  it('shows an empty list when PowerPoint cannot be asked', async () => {
+    const { store, powerpoint } = setup()
+    powerpoint.listOpen.mockRejectedValue(new Error('powershell not found'))
+
+    await store.refreshOpen()
+
+    expect(store.openPresentations).toEqual([])
+    expect(store.loadingOpen).toBe(false)
+  })
+
+  it('links the chosen presentation, remembering it', async () => {
+    const { store, powerpoint } = setup()
+
+    await store.link('C:\\slides\\culto.pptx')
+
+    expect(powerpoint.link).toHaveBeenCalledWith('C:\\slides\\culto.pptx')
+    expect(store.linkedPath).toBe('C:\\slides\\culto.pptx')
+    expect(store.linkError).toBe(false)
+  })
+
+  it('reports a presentation that could not be read instead of showing it as linked', async () => {
+    const { store, powerpoint } = setup()
+    powerpoint.link.mockRejectedValue(new Error('not open'))
+
+    await store.link('C:\\slides\\fechada.pptx')
+
+    expect(store.linkedPath).toBeNull()
+    expect(store.linkError).toBe(true)
   })
 })

@@ -146,7 +146,15 @@
       "closed": "A conexão com o LouvorJA foi encerrada.",
       "httpStatus": "O LouvorJA respondeu com erro (HTTP {detail}).",
       "unauthorized": "O LouvorJA recusou o token. Confira o token mostrado na aba Transmitir.",
-      "incompatible": "O endereço respondeu, mas não parece ser o servidor de transmissão do LouvorJA. Confira o endereço e a porta."
+      "incompatible": "O endereço respondeu, mas não parece ser o servidor de transmissão do LouvorJA. Confira o endereço e a porta.",
+      "help": {
+        "title": "Não foi possível conectar ao LouvorJA ({endpoint}).",
+        "intro": "No LouvorJA, abra a aba Transmitir e confira:",
+        "server": "se o servidor está ligado (botão \"Iniciar Servidor\");",
+        "address": "se o endereço (IP) e a porta mostrados lá são os mesmos informados aqui - o IP pode mudar quando o computador troca de rede ou é reiniciado;",
+        "token": "o token mostrado lá, se o LouvorJA estiver em outro computador.",
+        "tip": "Dica: o botão \"Copiar Link\" do LouvorJA copia endereço, porta e token de uma vez - cole em qualquer campo do formulário de conexão."
+      }
     },
     "info": {
       "title": "Status da conexão",
@@ -165,11 +173,30 @@
     "noUpcoming": "Nenhum próximo slide.",
     "position": "Slide {n} de {total}",
     "navigation": "Navegação",
-    "noFileLinked": "Nenhum arquivo vinculado",
-    "fileLinked": "Arquivo vinculado",
-    "linkFile": "Vincular apresentação do PowerPoint",
-    "startPresentation": "Iniciar apresentação",
-    "endPresentation": "Finalizar apresentação",
+    "selectPresentation": "Selecione uma apresentação",
+    "noOpenPresentations": "Nenhuma apresentação aberta no PowerPoint",
+    "linkError": "Não foi possível ler esta apresentação. Ela ainda está aberta no PowerPoint?",
+    "refreshOpen": "Atualizar apresentações abertas",
+    "ocrProgress": "Lendo o texto das imagens… {done}/{total}",
+    "startPresentation": "Iniciar",
+    "endPresentation": "Finalizar",
+    "presenter": {
+      "open": "Configurar passador de slides",
+      "title": "Passador de slides",
+      "hint": "Clique numa ação e aperte o botão correspondente no passador. Só o passador vinculado comanda a apresentação; o teclado não.",
+      "pressKey": "Aperte no passador…",
+      "escAlways": "Esc do passador sempre finaliza; a tecla vinculada é um atalho a mais",
+      "device": "Passador",
+      "noDevice": "Nenhum passador vinculado",
+      "identify": "Identificar",
+      "pressAny": "Aperte qualquer botão do passador…",
+      "unlinkDevice": "Desvincular passador",
+      "deviceHint": "Vincular uma tecla também vincula o aparelho em que ela foi apertada.",
+      "none": "Nenhuma",
+      "space": "Espaço",
+      "clear": "Remover tecla",
+      "restore": "Restaurar padrão"
+    },
     "previous": "Voltar",
     "next": "Avançar",
     "presentation": "Apresentação: {title}",
@@ -221,6 +248,21 @@
     "openSettings": "Abrir configurações",
     "error": "Não foi possível traduzir."
   },
+  "speech": {
+    "title": "Microfone",
+    "hint": "O que for falado no microfone padrão do Windows é reconhecido e sinalizado pelo avatar, frase por frase. Enquanto ligado, tem prioridade sobre o LouvorJA e os slides.",
+    "start": "Ouvir microfone",
+    "stop": "Parar de ouvir",
+    "listening": "Ouvindo",
+    "lastPhrase": "Última frase reconhecida",
+    "waiting": "Aguardando alguém falar…",
+    "openSettings": "Abrir configurações do Windows",
+    "errors": {
+      "privacy": "Ative \"Reconhecimento de fala online\" nas configurações de Fala do Windows (precisa de internet) e tente de novo.",
+      "microphone": "Nenhum microfone encontrado, ou o acesso ao microfone está bloqueado para aplicativos da área de trabalho.",
+      "other": "Não foi possível usar o reconhecimento de fala do Windows."
+    }
+  },
   "projection": {
     "stage": "Como está sendo projetado",
     "controls": "Controles",
@@ -250,6 +292,7 @@
     "autoInterpret": "Interpretar cada slide automaticamente",
     "showSlide": "Mostrar o slide ao fundo",
     "continuousPlayback": "Reprodução contínua",
+    "captions": "Legenda das traduções",
     "position": "Posição do avatar",
     "size": "Tamanho",
     "sync": {

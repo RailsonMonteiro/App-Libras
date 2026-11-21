@@ -27,6 +27,14 @@ const errorMessage = computed(() => {
   return t(`integration.errors.${key}`, { detail: error.detail ?? '' })
 })
 
+/** Nothing answered at that address (or not in time) - most often LouvorJA's IP changed, or its
+ *  server is off: says where in LouvorJA to check the address, port and token, instead of a
+ *  technical reason. */
+const cannotReach = computed(() => {
+  const code = props.status.lastError?.code
+  return code === 'unreachable' || code === 'timeout'
+})
+
 const retryLabel = computed(() =>
   props.status.retryInMs === null
     ? ''
@@ -73,7 +81,26 @@ const retryLabel = computed(() =>
     </div>
 
     <v-alert
-      v-if="errorMessage && status.state !== 'connected'"
+      v-if="cannotReach && status.state !== 'connected'"
+      type="warning"
+      variant="tonal"
+      density="compact"
+      class="mt-3 connection-error"
+      data-testid="connection-error"
+    >
+      <div class="help-title">
+        {{ $t('integration.errors.help.title', { endpoint: endpointLabel }) }}
+      </div>
+      <div>{{ $t('integration.errors.help.intro') }}</div>
+      <ul class="help-list">
+        <li>{{ $t('integration.errors.help.server') }}</li>
+        <li>{{ $t('integration.errors.help.address') }}</li>
+        <li>{{ $t('integration.errors.help.token') }}</li>
+      </ul>
+      <div class="help-tip">{{ $t('integration.errors.help.tip') }}</div>
+    </v-alert>
+    <v-alert
+      v-else-if="errorMessage && status.state !== 'connected'"
       type="warning"
       variant="tonal"
       density="compact"
@@ -108,5 +135,19 @@ const retryLabel = computed(() =>
 
 .connection-error :deep(.v-icon) {
   font-size: 18px;
+}
+
+.help-title {
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+
+.help-list {
+  margin: 4px 0 4px 18px;
+  padding: 0;
+}
+
+.help-tip {
+  opacity: 0.85;
 }
 </style>

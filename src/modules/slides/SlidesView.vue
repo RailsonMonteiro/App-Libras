@@ -1,26 +1,33 @@
 <script setup lang="ts">
-// This page is dedicated to PowerPoint only (link a file, control it, see the live slide and its
-// translation). The "Próximos slides" sidebar below previews what is coming up next in the
+// This page is dedicated to PowerPoint only (link one of the presentations open in PowerPoint,
+// drive its slide show, see the live slide and its translation). The "Próximos slides" sidebar below previews what is coming up next in the
 // loaded file - it has no link to LouvorJA's own "Slides recebidos" card on the Projeção page,
 // which is a history of what already aired.
 // "Voltar"/"Avançar": one icon from Phosphor Icons' web font, "regular" weight only.
 import '@phosphor-icons/web/regular/style.css'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import SlidePreview from '@/components/SlidePreview.vue'
 import GlossView from '@/modules/libras/components/GlossView.vue'
 import { usePowerPointStore } from '@/modules/powerpoint/stores/powerpoint.store'
 import { slideImageUrl } from '@/modules/powerpoint/types/powerpoint.types'
 import SettingsSection from '@/modules/settings/SettingsSection.vue'
-import { useI18n } from 'vue-i18n'
+import type { OpenPresentation } from '@/types/ipc'
+import PresenterKeysDialog from './components/PresenterKeysDialog.vue'
 
 const store = usePowerPointStore()
-const { t } = useI18n()
 
-/** Just confirms a file is linked, not which one - the field's own title attribute keeps the
- *  full path for whoever hovers over it. */
-const linkedFileLabel = computed(() =>
-  store.linkedFile ? t('slides.fileLinked') : t('slides.noFileLinked')
-)
+const presenterKeysOpen = ref(false)
+
+/** What PowerPoint has open, plus the linked one even after it was closed there - otherwise the
+ *  field would show its raw path instead of its name. */
+const presentationItems = computed<OpenPresentation[]>(() => {
+  const items = store.openPresentations
+  const linked = store.linkedPath
+  if (!linked || items.some((item) => item.path === linked)) return items
+  return [...items, { path: linked, name: linked.split(/[\\/]/).pop() || linked }]
+})
+
+onMounted(() => void store.refreshOpen())
 
 /** A real thumbnail of the current slide (rendered from the .pptx file itself - see
  *  PowerPointSlideImageCache), with the text-only SlidePreview as a fallback - rendering can
@@ -70,28 +77,81 @@ function upcomingImageUrl(index: number): string | null {
             :title="$t('slides.navigation')"
             data-testid="slides-navigation"
           >
-            <div class="file-field" :title="store.linkedFile ?? ''">
-              <v-text-field
-                :model-value="linkedFileLabel"
+            <div class="file-field" :title="store.linkedPath ?? ''">
+              <v-select
+                :model-value="store.linkedPath"
+                :items="presentationItems"
+                item-title="name"
+                item-value="path"
+                :placeholder="$t('slides.selectPresentation')"
+                :no-data-text="$t('slides.noOpenPresentations')"
+                :loading="store.loadingOpen"
                 class="flex-grow-1"
-                readonly
                 variant="solo-filled"
                 flat
                 density="comfortable"
                 hide-details
-                prepend-inner-icon="mdi-file-powerpoint-box-outline"
-                data-testid="slides-linked-file"
-              />
-              <v-btn
-                variant="tonal"
-                icon
-                :aria-label="$t('slides.linkFile')"
-                data-testid="slides-pick-file"
-                @click="store.linkFile()"
+                :menu-props="{ minWidth: 320, maxWidth: 480 }"
+                data-testid="slides-linked-presentation"
+                @update:menu="(isOpen: boolean) => isOpen && store.refreshOpen()"
+                @update:model-value="(path: string | null) => path && store.link(path)"
               >
-                <v-icon>mdi-folder-open-outline</v-icon>
-                <v-tooltip activator="parent" location="top">
-                  {{ $t('slides.linkFile') }}
+                <template #prepend-inner>
+                  <v-icon size="20">mdi-file-powerpoint-box-outline</v-icon>
+                </template>
+                <template #item="{ props: itemProps, item }">
+                  <v-list-item
+                    v-bind="itemProps"
+                    :title="item.raw.name"
+                    :subtitle="item.raw.path"
+                  />
+                </template>
+              </v-select>
+            </div>
+
+            <div v-if="store.ocr" class="ocr-progress" data-testid="slides-ocr-progress">
+              <span>
+                {{ $t('slides.ocrProgress', { done: store.ocr.done, total: store.ocr.total }) }}
+              </span>
+              <v-progress-linear
+                :model-value="(store.ocr.done / Math.max(store.ocr.total, 1)) * 100"
+                color="primary"
+                height="3"
+                rounded
+              />
+            </div>
+
+            <p v-if="store.linkError" class="link-error" data-testid="slides-link-error">
+              <v-icon size="14" class="mr-1">mdi-alert-circle-outline</v-icon>
+              {{ $t('slides.linkError') }}
+            </p>
+
+            <div class="control-header">
+              <v-btn
+                icon
+                size="x-small"
+                variant="text"
+                :loading="store.loadingOpen"
+                :aria-label="$t('slides.refreshOpen')"
+                data-testid="slides-refresh-open"
+                @click="store.refreshOpen()"
+              >
+                <v-icon size="16">mdi-refresh</v-icon>
+                <v-tooltip activator="parent" location="top" content-class="control-tooltip">
+                  {{ $t('slides.refreshOpen') }}
+                </v-tooltip>
+              </v-btn>
+              <v-btn
+                icon
+                size="x-small"
+                variant="text"
+                :aria-label="$t('slides.presenter.open')"
+                data-testid="slides-presenter-settings"
+                @click="presenterKeysOpen = true"
+              >
+                <v-icon size="16">mdi-cog-outline</v-icon>
+                <v-tooltip activator="parent" location="top" content-class="control-tooltip">
+                  {{ $t('slides.presenter.open') }}
                 </v-tooltip>
               </v-btn>
             </div>
@@ -152,6 +212,7 @@ function upcomingImageUrl(index: number): string | null {
               </div>
             </div>
           </SettingsSection>
+          <PresenterKeysDialog v-model="presenterKeysOpen" />
         </v-col>
 
         <v-col cols="12" md="9">
@@ -352,12 +413,49 @@ function upcomingImageUrl(index: number): string | null {
   background: #000;
 }
 
-/* The linked .pptx file's name, with a button next to it that opens the native file picker. */
+/* The presentations open in PowerPoint (pick one to link it) - the whole width of the column, so
+   the file name is not cut down to a few letters. */
 .file-field {
   display: flex;
+  min-width: 0;
+  margin-bottom: 8px;
+}
+
+.file-field :deep(.v-select__selection) {
+  min-width: 0;
+}
+
+.file-field :deep(.v-select__selection-text) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* "Lendo o texto das imagens…" while slides made of a picture are read (OCR). */
+.ocr-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 8px;
+  color: var(--sidebar-text-secondary);
+  font-size: 12px;
+}
+
+.link-error {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
+  margin: 0 0 8px;
+  color: rgb(var(--v-theme-error));
+  font-size: 12px;
+}
+
+/* Small buttons above the controls: refresh the open presentations, and the gear that opens the
+   presenter remote ("passador") key bindings. */
+.control-header {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+  margin-bottom: 2px;
 }
 
 /* Iniciar/Finalizar on top, Voltar/Avançar side by side below it - one taller outline

@@ -27,6 +27,22 @@ export const AVATAR_SCALE_RANGE = { min: 0, max: 100 } as const
  */
 export const INTERPRET_DELAY_RANGE = { min: -2.5, max: 15, step: 0.5 } as const
 
+/** The Slides controls a presenter remote ("passador de slides") can be bound to. */
+export const PRESENTER_ACTIONS = ['start', 'end', 'previous', 'next'] as const
+export type PresenterAction = (typeof PRESENTER_ACTIONS)[number]
+/** The `KeyboardEvent.key` each action answers to (a remote types like a keyboard); `null`: none. */
+export type PresenterKeys = Record<PresenterAction, string | null>
+/** Esc always ends the slide show, as in PowerPoint itself - whatever key is bound to "Finalizar"
+ *  only adds a second way to do it (e.g. a remote button that does not send Esc). */
+export const PRESENTER_END_KEY = 'Escape'
+/** PageUp/PageDown are what practically every presenter remote sends for back/forward. */
+export const DEFAULT_PRESENTER_KEYS: PresenterKeys = {
+  start: null,
+  end: null,
+  previous: 'PageUp',
+  next: 'PageDown'
+}
+
 export interface AppSettings {
   theme: ThemeMode
   locale: AppLocale
@@ -57,6 +73,9 @@ export interface AppSettings {
    * current one finishes on its own - until there is nothing left queued.
    */
   continuousPlayback: boolean
+  /** The player's own caption with the avatar: the word being signed. On the projection page and
+   *  the overlay alike, for LouvorJA and for PowerPoint slides alike. */
+  avatarCaptions: boolean
   /** Seconds between a slide coming on the air and the avatar starting to sign it. Not exposed
    *  in Ajustes any more - it always sits at INTERPRET_DELAY_RANGE.min (fastest start). */
   interpretDelay: number
@@ -74,6 +93,12 @@ export interface AppSettings {
   overlayAutoOpen: boolean
   /** The overlay stays open but shows the avatar only from the first text to the last one. */
   overlayOnlyDuringPresentation: boolean
+
+  /** Keys of the presenter remote bound to the Slides controls. */
+  presenterKeys: PresenterKeys
+  /** The presenter remote itself (its vendor/product ids): only its keys drive the slide show,
+   *  never the keyboard's. `null` until one is linked. */
+  presenterDevice: string | null
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -92,6 +117,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   signRegion: 'BR',
   autoInterpret: true,
   continuousPlayback: true,
+  // Off: what the app always did before this became a setting.
+  avatarCaptions: false,
   // No longer adjustable from Ajustes: always the fastest the avatar can start (see
   // INTERPRET_DELAY_RANGE.min above) - it should sign the moment the text arrives.
   interpretDelay: INTERPRET_DELAY_RANGE.min,
@@ -102,5 +129,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
 
   overlayDisplayId: null,
   overlayAutoOpen: true,
-  overlayOnlyDuringPresentation: true
+  overlayOnlyDuringPresentation: true,
+
+  presenterKeys: DEFAULT_PRESENTER_KEYS,
+  presenterDevice: null
 }

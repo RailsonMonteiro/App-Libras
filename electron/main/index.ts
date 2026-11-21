@@ -8,14 +8,20 @@ import { SettingsService } from '../services/SettingsService'
 import { UpdaterService } from '../services/UpdaterService'
 import { LibrasService } from '../services/libras/LibrasService'
 import { LouvorJAService } from '../services/louvorja/LouvorJAService'
+import { describeError } from '../services/louvorja/adapters/errorDetail'
 import { PowerPointService } from '../services/powerpoint/PowerPointService'
 import { PowerPointSlideImageCache } from '../services/powerpoint/PowerPointSlideImageCache'
+import { PresenterInput } from '../services/powerpoint/PresenterInput'
+import { PresenterRemote } from '../services/powerpoint/PresenterRemote'
+import { SpeechService } from '../services/speech/SpeechService'
+import type { RemoteKey } from '../../src/types/ipc'
 import { registerIpc } from './ipc'
 import { registerAvatarIpc } from './ipc/avatar'
 import { registerLibrasIpc } from './ipc/libras'
 import { registerLouvorJAIpc } from './ipc/louvorja'
 import { registerOverlayIpc } from './ipc/overlay'
 import { registerPowerPointIpc } from './ipc/powerpoint'
+import { registerSpeechIpc } from './ipc/speech'
 import { registerUpdaterIpc } from './ipc/updater'
 import { installAppMenu } from './menus/appMenu'
 import { handleAppProtocol, registerAppScheme } from './protocol'
@@ -40,6 +46,17 @@ if (!app.requestSingleInstanceLock()) {
     const db = openDatabase(join(app.getPath('userData'), 'louvorja-libras.db'))
     const logs = new LogService(db)
     const settings = new SettingsService(db)
+
+    // Safety net: anything that still escapes in this process is logged instead of stopping the
+    // service with Electron's "A JavaScript error occurred in the main process" dialog (seen for
+    // real when LouvorJA's IP changed - see LouvorJAPianoAdapter.ts). The cause is still fixed
+    // where it comes from; this only keeps an unknown one from becoming that dialog.
+    process.on('uncaughtException', (error) => {
+      logs.error('app', 'Uncaught exception', { error: describeError(error) })
+    })
+    process.on('unhandledRejection', (reason) => {
+      logs.error('app', 'Unhandled rejection', { error: describeError(reason) })
+    })
 
     logs.prune()
     logs.info('app', `Started APP Libras ${app.getVersion()}`)
@@ -74,6 +91,28 @@ if (!app.requestSingleInstanceLock()) {
 
     const powerpoint = new PowerPointService({ db, logs, slideImages: pptxSlideImages })
     powerpoint.prune()
+    // The presenter remote: key presses with the device they came from, so only the linked
+    // remote drives the slide show - never the keyboard (see PresenterRemote).
+    const presenterInput = new PresenterInput(logs)
+    let sendRemoteKey: (key: RemoteKey) => void = () => undefined
+    const presenterRemote = new PresenterRemote({
+      getKeys: () => settings.getAll().presenterKeys,
+      getDevice: () => settings.getAll().presenterDevice,
+      getLink: () => powerpoint.getLink(),
+      control: (action) => void powerpoint.control(action),
+      sync: () => void powerpoint.sync(),
+      onBindingKey: ({ device, key }) => sendRemoteKey({ device, key })
+    })
+    presenterInput.onKey((event) => presenterRemote.handle(event))
+    presenterInput.setDevice(settings.getAll().presenterDevice)
+    presenterInput.start()
+    const bindRemote = (on: boolean): void => {
+      presenterRemote.setBinding(on)
+      presenterInput.setBinding(on)
+    }
+
+    const speech = new SpeechService({ db, logs })
+    speech.prune()
 
     const libras = new LibrasService({ db, logs, settings: () => settings.getAll() })
     libras.prune()
@@ -84,6 +123,7 @@ if (!app.requestSingleInstanceLock()) {
       onSettingsChanged: (updated) => {
         syncTray(updated.runInBackground)
         syncAutoLaunch(updated.startWithWindows)
+        presenterInput.setDevice(updated.presenterDevice)
       },
       onHideToTray: () => {
         if (!hiddenToTrayOnce) {
@@ -95,7 +135,8 @@ if (!app.requestSingleInstanceLock()) {
     registerLibrasIpc(libras)
     registerAvatarIpc(signs)
     registerLouvorJAIpc(louvorja)
-    registerPowerPointIpc(powerpoint)
+    sendRemoteKey = registerPowerPointIpc(powerpoint, bindRemote).sendRemoteKey
+    registerSpeechIpc(speech)
     const overlay = new OverlayController()
     registerOverlayIpc(overlay)
     const updater = new UpdaterService(logs)
@@ -165,7 +206,10 @@ if (!app.requestSingleInstanceLock()) {
     app.on('will-quit', () => {
       tray?.destroy()
       louvorja.dispose()
+      presenterRemote.dispose()
+      presenterInput.dispose()
       powerpoint.dispose()
+      speech.dispose()
       db.close()
     })
   })

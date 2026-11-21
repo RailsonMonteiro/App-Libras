@@ -1,8 +1,7 @@
-# Run by PowerPointSlideImageCache.ts, on demand. Exports one slide of an ALREADY-OPEN (hidden)
-# presentation - see loadFile.ps1, which opens it and keeps it open specifically so this script
-# never pays PowerPoint's own startup/open cost on every single slide image request. Exits 1
-# whenever it cannot be produced - PowerPoint not running, this file not the one open, or the
-# index out of range - all normal, not-a-real-error states.
+﻿# Run by PowerPointSlideImageCache.ts, on demand. Exports one slide of the linked presentation,
+# already open in the person's own PowerPoint (see listOpen.ps1) - never opens anything itself.
+# Exits 1 whenever it cannot be produced - PowerPoint not running, this file no longer open, or
+# the index out of range - all normal, not-a-real-error states.
 
 param(
   [Parameter(Mandatory = $true)]
@@ -12,6 +11,8 @@ param(
   [Parameter(Mandatory = $true)]
   [string]$OutPath
 )
+
+[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false # the app reads stdout as UTF-8 (accented paths)
 
 try {
   $app = [Runtime.InteropServices.Marshal]::GetActiveObject('PowerPoint.Application')

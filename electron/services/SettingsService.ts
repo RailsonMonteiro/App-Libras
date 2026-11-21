@@ -21,6 +21,9 @@ const httpUrl = z.string().trim().max(300).refine(isHttpUrl, 'Must be an http(s)
 /** A base address is always kept with a trailing slash, so file names can be appended to it. */
 const baseUrl = httpUrl.transform((value) => (value.endsWith('/') ? value : `${value}/`))
 
+/** A `KeyboardEvent.key` value ("PageDown", "b", " "...), or none. */
+const presenterKey = z.string().min(1).max(40).nullable()
+
 export const settingSchemas = {
   theme: z.enum(THEME_MODES),
   locale: z.enum(APP_LOCALES),
@@ -41,6 +44,7 @@ export const settingSchemas = {
   signRegion: z.enum(REGION_CODES),
   autoInterpret: z.boolean(),
   continuousPlayback: z.boolean(),
+  avatarCaptions: z.boolean(),
   interpretDelay: z
     .number()
     .min(INTERPRET_DELAY_RANGE.min)
@@ -53,7 +57,14 @@ export const settingSchemas = {
   dictionaryUrl: baseUrl,
   overlayDisplayId: z.number().int().nonnegative().nullable(),
   overlayAutoOpen: z.boolean(),
-  overlayOnlyDuringPresentation: z.boolean()
+  overlayOnlyDuringPresentation: z.boolean(),
+  presenterKeys: z.object({
+    start: presenterKey,
+    end: presenterKey,
+    previous: presenterKey,
+    next: presenterKey
+  }),
+  presenterDevice: z.string().min(1).max(512).nullable()
 } satisfies { [K in keyof AppSettings]: z.ZodType<AppSettings[K]> }
 
 export class SettingsService {

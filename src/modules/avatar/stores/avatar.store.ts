@@ -188,7 +188,7 @@ export const useAvatarStore = defineStore('avatar', () => {
       appliedAvatar = current.avatar
     }
     player.setSpeed(current.avatarSpeed)
-    player.hideCaptions()
+    player.setCaptions(current.avatarCaptions)
   }
 
   // --- commands ---
@@ -287,7 +287,12 @@ export const useAvatarStore = defineStore('avatar', () => {
     await checkAvailability()
 
     watch(
-      () => [settings.value.avatar, settings.value.avatarSpeed, settings.value.signRegion],
+      () => [
+        settings.value.avatar,
+        settings.value.avatarSpeed,
+        settings.value.signRegion,
+        settings.value.avatarCaptions
+      ],
       applySettings
     )
 
@@ -407,6 +412,12 @@ export const useAvatarStore = defineStore('avatar', () => {
     function nextContinuousSlide(): { id: string; receivedAt: string; text: string } | null {
       const queue = louvorja.recentSlides
       if (queue.length === 0) return null
+      // Speech comes faster than the avatar can sign it: once the current phrase is done, go
+      // straight to the latest one said instead of falling further and further behind.
+      if (louvorja.source === 'speech') {
+        const latest = queue.at(-1) ?? null
+        return latest && slideKey(latest) !== continuousCursor ? latest : null
+      }
       if (continuousCursor === null) return queue[0] ?? null
       const idx = queue.findIndex((slide) => slideKey(slide) === continuousCursor)
       return queue[idx + 1] ?? null

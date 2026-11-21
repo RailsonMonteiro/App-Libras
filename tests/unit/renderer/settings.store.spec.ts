@@ -35,11 +35,20 @@ describe('settings store', () => {
         removeConnection: vi.fn(),
         onEvent: vi.fn()
       },
+      speech: {
+        getState: vi.fn(),
+        start: vi.fn(),
+        stop: vi.fn(),
+        openSettings: vi.fn(),
+        onEvent: vi.fn()
+      },
       powerpoint: {
         getState: vi.fn(),
         control: vi.fn(),
-        pickFile: vi.fn(),
-        loadFile: vi.fn(),
+        listOpen: vi.fn(),
+        link: vi.fn(),
+        bindRemote: vi.fn(),
+        onRemoteKey: vi.fn(),
         onEvent: vi.fn()
       },
       updater: {

@@ -6,6 +6,8 @@ import {
   type OverlayCommand,
   type OverlayState,
   type PowerPointPushEvent,
+  type RemoteKey,
+  type SpeechPushEvent,
   type UpdaterState
 } from '../../src/types/ipc'
 import type { AppSettings } from '../../src/types/settings'
@@ -51,9 +53,18 @@ const api: LouvorJAApi = {
   powerpoint: {
     getState: () => ipcRenderer.invoke(IpcChannels.powerpointGetState),
     control: (action) => ipcRenderer.invoke(IpcChannels.powerpointControl, action),
-    pickFile: () => ipcRenderer.invoke(IpcChannels.powerpointPickFile),
-    loadFile: (path) => ipcRenderer.invoke(IpcChannels.powerpointLoadFile, path),
+    listOpen: () => ipcRenderer.invoke(IpcChannels.powerpointListOpen),
+    link: (path) => ipcRenderer.invoke(IpcChannels.powerpointLink, path),
+    bindRemote: (on) => ipcRenderer.invoke(IpcChannels.powerpointBindRemote, on),
+    onRemoteKey: (listener) => subscribe<RemoteKey>(IpcChannels.powerpointRemoteKey, listener),
     onEvent: (listener) => subscribe<PowerPointPushEvent>(IpcChannels.powerpointEvent, listener)
+  },
+  speech: {
+    getState: () => ipcRenderer.invoke(IpcChannels.speechGetState),
+    start: () => ipcRenderer.invoke(IpcChannels.speechStart),
+    stop: () => ipcRenderer.invoke(IpcChannels.speechStop),
+    openSettings: (kind) => ipcRenderer.invoke(IpcChannels.speechOpenSettings, kind),
+    onEvent: (listener) => subscribe<SpeechPushEvent>(IpcChannels.speechEvent, listener)
   },
   libras: {
     translate: (text) => ipcRenderer.invoke(IpcChannels.librasTranslate, text),

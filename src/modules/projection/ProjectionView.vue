@@ -14,6 +14,7 @@ import { AVATAR_POSITION_RANGE, AVATAR_SPEED_RANGE } from '@/modules/avatar/type
 import { useLibrasStore } from '@/modules/libras/stores/libras.store'
 import { useActivePresentationSource } from '@/composables/useActivePresentationSource'
 import { useOverlayStore } from '@/modules/overlay/stores/overlay.store'
+import MicrophoneCard from '@/modules/speech/components/MicrophoneCard.vue'
 import { useSettingsStore } from '@/stores/settings.store'
 import { AVATAR_SCALE_RANGE, type AppSettings } from '@/types/settings'
 import ProjectionStage from './components/ProjectionStage.vue'
@@ -220,9 +221,17 @@ function togglePause(): void {
                   data-testid="avatar-continuous"
                   @update:model-value="change('continuousPlayback', $event)"
                 />
+                <ToggleRow
+                  :model-value="settings.avatarCaptions"
+                  :label="$t('projection.captions')"
+                  data-testid="avatar-captions"
+                  @update:model-value="change('avatarCaptions', $event)"
+                />
               </div>
             </v-card-text>
           </v-card>
+
+          <MicrophoneCard />
         </v-col>
 
         <v-col cols="12" lg="8" class="d-flex flex-column ga-5">

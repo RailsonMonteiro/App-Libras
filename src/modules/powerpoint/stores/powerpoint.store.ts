@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Presentation, Slide } from '@/types/presentation'
 import type {
+  OcrProgress,
+  OpenPresentation,
   PowerPointAction,
   PowerPointPushEvent,
   PowerPointState,
@@ -16,8 +18,15 @@ export const usePowerPointStore = defineStore('powerpoint', () => {
   const recentSlides = ref<Slide[]>([])
   /** Slides not yet reached, nearest first - unrelated to LouvorJA's own "Slides recebidos". */
   const upcomingSlides = ref<UpcomingSlide[]>([])
-  /** Full path of the file loaded through linkFile(), for this session only. */
-  const linkedFile = ref<string | null>(null)
+  /** The presentation linked to the app (an OpenPresentation.path), if any. */
+  const linkedPath = ref<string | null>(null)
+  /** The last one picked could no longer be read (closed in PowerPoint in the meantime...). */
+  const linkError = ref(false)
+  /** What PowerPoint has open, as of the last refreshOpen(). */
+  const openPresentations = ref<OpenPresentation[]>([])
+  const loadingOpen = ref(false)
+  /** Reading the text inside slide images (OCR) in progress, if any. */
+  const ocr = ref<OcrProgress | null>(null)
 
   let unsubscribe: (() => void) | null = null
 
@@ -26,6 +35,8 @@ export const usePowerPointStore = defineStore('powerpoint', () => {
     currentSlide.value = state.currentSlide
     recentSlides.value = state.recentSlides
     upcomingSlides.value = state.upcomingSlides
+    linkedPath.value = state.linkedPath
+    ocr.value = state.ocr ?? null
   }
 
   function applyEvent(event: PowerPointPushEvent): void {
@@ -50,6 +61,9 @@ export const usePowerPointStore = defineStore('powerpoint', () => {
       case 'upcoming':
         upcomingSlides.value = event.slides
         break
+      case 'ocr':
+        ocr.value = event.progress
+        break
     }
   }
 
@@ -65,17 +79,33 @@ export const usePowerPointStore = defineStore('powerpoint', () => {
     unsubscribe = null
   }
 
-  /** Moves between slides of the loaded file (ignored while none is loaded). */
+  /** Drives the linked presentation's slide show (ignored while none is linked). */
   async function control(action: PowerPointAction): Promise<void> {
     await PowerPointService.control(action)
   }
 
-  /** Opens the native file picker and, unless cancelled, reads and parses the chosen file. */
-  async function linkFile(): Promise<void> {
-    const path = await PowerPointService.pickFile()
-    if (!path) return
-    linkedFile.value = path
-    await PowerPointService.loadFile(path)
+  /** Asks PowerPoint what it has open right now. */
+  async function refreshOpen(): Promise<void> {
+    loadingOpen.value = true
+    try {
+      openPresentations.value = await PowerPointService.listOpen()
+    } catch {
+      openPresentations.value = []
+    } finally {
+      loadingOpen.value = false
+    }
+  }
+
+  /** Links one of the open presentations and reads its slides. */
+  async function link(path: string): Promise<void> {
+    linkError.value = false
+    linkedPath.value = null
+    try {
+      await PowerPointService.link(path)
+      linkedPath.value = path
+    } catch {
+      linkError.value = true
+    }
   }
 
   return {
@@ -83,10 +113,15 @@ export const usePowerPointStore = defineStore('powerpoint', () => {
     currentSlide,
     recentSlides,
     upcomingSlides,
-    linkedFile,
+    linkedPath,
+    linkError,
+    openPresentations,
+    loadingOpen,
+    ocr,
     init,
     dispose,
     control,
-    linkFile
+    refreshOpen,
+    link
   }
 })

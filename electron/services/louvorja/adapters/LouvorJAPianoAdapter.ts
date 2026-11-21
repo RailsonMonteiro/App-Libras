@@ -53,6 +53,12 @@ export class LouvorJAPianoAdapter implements LouvorJAAdapter {
     const socket = new WebSocket(`ws://${this.endpoint.host}:${this.endpoint.port}`)
     this.socket = socket
 
+    // Always some 'error' listener on the socket from here on: an EventEmitter 'error' with none
+    // is thrown, and in the main process that is Electron's "A JavaScript error occurred" dialog.
+    // It happened for real: after a connect timeout (LouvorJA's IP changed, the old one answers
+    // nothing), the socket kept trying and Windows gave up on it seconds later - with no listener.
+    socket.on('error', () => undefined)
+
     await new Promise<void>((resolve, reject) => {
       let settled = false
       const finish = (fn: () => void): void => {
@@ -65,8 +71,15 @@ export class LouvorJAPianoAdapter implements LouvorJAAdapter {
         socket.off('close', onClose)
         fn()
       }
+      /** Gives up on this socket for good - a timed-out one would otherwise keep connecting. */
+      const fail = (error: ConnectionError): void =>
+        finish(() => {
+          this.socket = null
+          socket.terminate()
+          reject(error)
+        })
       const timer = setTimeout(
-        () => finish(() => reject(new ConnectionError('timeout'))),
+        () => fail(new ConnectionError('timeout')),
         this.options.connectTimeoutMs ?? 8000
       )
       const onOpen = (): void => {
@@ -78,9 +91,7 @@ export class LouvorJAPianoAdapter implements LouvorJAAdapter {
       const onMessage = (raw: RawData): void => {
         const message = parseMessage(raw)
         if (message?.type === 'error' && message.code === 'remote_busy') {
-          finish(() =>
-            reject(new ConnectionError('unreachable', 'remote_busy: another client is connected'))
-          )
+          fail(new ConnectionError('unreachable', 'remote_busy: another client is connected'))
         }
       }
       const onError = (error: Error): void => {
@@ -88,12 +99,10 @@ export class LouvorJAPianoAdapter implements LouvorJAAdapter {
         this.options.onWarning?.(
           `Could not reach ${this.endpoint.host}:${this.endpoint.port} (WebSocket): ${detail}`
         )
-        finish(() => reject(new ConnectionError('unreachable', detail)))
+        fail(new ConnectionError('unreachable', detail))
       }
       const onClose = (code: number): void =>
-        finish(() =>
-          reject(new ConnectionError('unreachable', `closed (${code}) before connecting`))
-        )
+        fail(new ConnectionError('unreachable', `closed (${code}) before connecting`))
 
       socket.on('open', onOpen)
       socket.on('message', onMessage)
@@ -101,17 +110,19 @@ export class LouvorJAPianoAdapter implements LouvorJAAdapter {
       socket.on('close', onClose)
     })
 
+    // A post-connect error is always followed by 'close', which is what reports it (the no-op
+    // 'error' listener added above keeps it from being thrown).
     socket.on('close', () => {
       this.socket = null
       this.closeListener?.(new ConnectionError('closed'))
     })
-    socket.on('error', () => {
-      // A post-connect error is always followed by 'close', which is what reports it.
-    })
   }
 
   disconnect(): void {
-    this.socket?.close()
+    // A clean close once open (frees app-Piano's single client slot politely); still connecting,
+    // there is no handshake to close yet - just drop it.
+    if (this.socket?.readyState === WebSocket.OPEN) this.socket.close()
+    else this.socket?.terminate()
     this.socket = null
   }
 }
